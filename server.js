@@ -247,6 +247,59 @@
     }
   });
 
+  app.get("/api/overview-data", async (req, res) => {
+    try {
+      const [[studentCountRow]] = await pool.query("SELECT COUNT(*) AS total_students FROM students");
+      const [[facultyCountRow]] = await pool.query("SELECT COUNT(*) AS total_faculty FROM faculty");
+      const [[courseCountRow]] = await pool.query("SELECT COUNT(*) AS total_courses FROM courses");
+      const [[departmentCountRow]] = await pool.query("SELECT COUNT(*) AS total_departments FROM departments");
+
+      const [students] = await pool.query(
+        `SELECT s.roll_no, s.student_name, d.dept_name, sem.sem_number, s.batch
+        FROM students s
+        INNER JOIN departments d ON d.dept_id = s.dept_id
+        INNER JOIN semesters sem ON sem.sem_id = s.sem_id
+        ORDER BY s.created_at DESC
+        LIMIT 10`
+      );
+
+      const [results] = await pool.query(
+        `SELECT s.roll_no, s.student_name, sem.sem_number, r.gpa, r.pass_fail_status
+        FROM semester_results r
+        INNER JOIN students s ON s.student_id = r.student_id
+        INNER JOIN semesters sem ON sem.sem_id = r.sem_id
+        ORDER BY r.generated_at DESC
+        LIMIT 8`
+      );
+
+      const [activityLogs] = await pool.query(
+        `SELECT f.faculty_code, f.faculty_name, s.roll_no, c.course_code, l.new_marks, l.action_time
+        FROM activity_log l
+        INNER JOIN faculty f ON f.faculty_id = l.faculty_id
+        INNER JOIN marks m ON m.marks_id = l.marks_id
+        INNER JOIN students s ON s.student_id = m.student_id
+        INNER JOIN courses c ON c.course_id = m.course_id
+        ORDER BY l.action_time DESC
+        LIMIT 8`
+      );
+
+      res.json({
+        ok: true,
+        counts: {
+          students: Number(studentCountRow.total_students || 0),
+          faculty: Number(facultyCountRow.total_faculty || 0),
+          courses: Number(courseCountRow.total_courses || 0),
+          departments: Number(departmentCountRow.total_departments || 0)
+        },
+        students,
+        results,
+        activityLogs
+      });
+    } catch (error) {
+      res.status(500).json({ ok: false, message: "Unable to load overview data.", error: error.message });
+    }
+  });
+
   app.post("/api/departments", async (req, res) => {
     const { deptCode, deptName } = req.body;
     if (!deptCode || !deptName) {
