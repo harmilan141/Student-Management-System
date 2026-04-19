@@ -151,7 +151,7 @@ body {
   padding: 24px;
 }
 
-.dashboard-sidebar {
+.dashboard-sidebar.card {
   position: sticky;
   top: 24px;
   padding: 24px 20px;
@@ -161,6 +161,7 @@ body {
     #14395f;
   border: 0;
   color: var(--text-inverse);
+  box-shadow: var(--shadow);
 }
 
 .sidebar-brand h2 {
@@ -211,7 +212,7 @@ body {
   box-shadow: 0 10px 24px rgba(201, 154, 46, 0.24);
 }
 
-.dashboard-header {
+.dashboard-header.card {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -222,6 +223,8 @@ body {
     linear-gradient(135deg, rgba(20, 57, 95, 0.98), rgba(42, 84, 126, 0.94)),
     #14395f;
   color: var(--text-inverse);
+  border: 0;
+  box-shadow: var(--shadow);
 }
 
 .dashboard-grid,
@@ -275,19 +278,19 @@ body {
   color: rgba(247, 251, 255, 0.74);
 }
 
-.dashboard-header .institution-type,
-.dashboard-header .institution-copy,
-.dashboard-header h1,
-.dashboard-header .subtitle,
-.dashboard-header .panel-header h2 {
+.dashboard-header.card .institution-type,
+.dashboard-header.card .institution-copy,
+.dashboard-header.card h1,
+.dashboard-header.card .subtitle,
+.dashboard-header.card .panel-header h2 {
   color: var(--text-inverse);
 }
 
-.dashboard-header .institution-type {
+.dashboard-header.card .institution-type {
   color: rgba(201, 154, 46, 0.92);
 }
 
-.dashboard-header .institution-copy {
+.dashboard-header.card .institution-copy {
   color: rgba(247, 251, 255, 0.78);
 }
 
