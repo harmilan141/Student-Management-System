@@ -8,43 +8,68 @@
 </head>
 <body>
   <div class="top-bar"></div>
-  <main class="dashboard-shell">
-    <section class="dashboard-header card">
-      <div>
-        <p class="institution-type">Administrator Panel</p>
-        <h1>Student Management Dashboard</h1>
-        <p class="institution-copy">
-          Manage departments, semesters, students, faculty, courses, mappings, marks, GPA, and results.
-        </p>
+  <main class="dashboard-layout">
+    <aside class="dashboard-sidebar card">
+      <div class="sidebar-brand">
+        <p class="institution-type">Navigation</p>
+        <h2>Admin Modules</h2>
       </div>
-      <div class="admin-summary">
-        <strong id="dashboardName">Administrator</strong>
-        <span id="dashboardEmail">-</span>
-        <button class="secondary-button" id="logoutButton" type="button">Logout</button>
-      </div>
-    </section>
 
-    <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
+      <nav class="sidebar-nav">
+        <a href="#overview" class="sidebar-link">Overview</a>
+        <a href="#department-management" class="sidebar-link">Department Management</a>
+        <a href="#semester-management" class="sidebar-link">Semester Management</a>
+        <a href="#course-management" class="sidebar-link">Course Management</a>
+        <a href="#student-management" class="sidebar-link">Student Management</a>
+        <a href="#faculty-management" class="sidebar-link">Faculty Management</a>
+        <a href="#department-course-mapping" class="sidebar-link">Department Course Mapping</a>
+        <a href="#faculty-course-assignment" class="sidebar-link">Faculty Course Assignment</a>
+        <a href="#marks-entry" class="sidebar-link">Marks Entry</a>
+        <a href="#result-generation" class="sidebar-link">Result Generation</a>
+        <a href="#students-table" class="sidebar-link">Student List</a>
+        <a href="#faculty-table" class="sidebar-link">Faculty List</a>
+        <a href="#courses-table" class="sidebar-link">Course List</a>
+        <a href="#activity-log" class="sidebar-link">Activity Log</a>
+      </nav>
+    </aside>
 
-    <section class="toolbar card">
-      <div class="toolbar-group">
-        <label for="studentSearch">Search Students</label>
-        <input id="studentSearch" type="text" placeholder="Search by roll no, name, or department">
-      </div>
-      <div class="toolbar-group">
-        <label for="departmentFilter">Department Filter</label>
-        <select id="departmentFilter">
-          <option value="">All Departments</option>
-        </select>
-      </div>
-      <div class="toolbar-actions">
-        <button class="secondary-button" id="searchButton" type="button">Search</button>
-        <button class="secondary-button" id="refreshButton" type="button">Refresh</button>
-      </div>
-    </section>
+    <section class="dashboard-shell">
+      <section class="dashboard-header card" id="overview">
+        <div>
+          <p class="institution-type">Administrator Panel</p>
+          <h1>Student Management Dashboard</h1>
+          <p class="institution-copy">
+            Manage departments, semesters, students, faculty, courses, mappings, marks, GPA, and results.
+          </p>
+        </div>
+        <div class="admin-summary">
+          <strong id="dashboardName">Administrator</strong>
+          <span id="dashboardEmail">-</span>
+          <button class="secondary-button" id="logoutButton" type="button">Logout</button>
+        </div>
+      </section>
 
-    <section class="dashboard-grid three-column">
-      <section class="card">
+      <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
+
+      <section class="toolbar card">
+        <div class="toolbar-group">
+          <label for="studentSearch">Search Students</label>
+          <input id="studentSearch" type="text" placeholder="Search by roll no, name, or department">
+        </div>
+        <div class="toolbar-group">
+          <label for="departmentFilter">Department Filter</label>
+          <select id="departmentFilter">
+            <option value="">All Departments</option>
+          </select>
+        </div>
+        <div class="toolbar-actions">
+          <button class="secondary-button" id="searchButton" type="button">Search</button>
+          <button class="secondary-button" id="refreshButton" type="button">Refresh</button>
+        </div>
+      </section>
+
+      <section class="dashboard-grid three-column">
+        <section class="card" id="department-management">
         <div class="panel-header">
           <h2>Department Management</h2>
           <p class="subtitle">Add and update departments.</p>
@@ -61,7 +86,7 @@
         </form>
       </section>
 
-      <section class="card">
+      <section class="card" id="semester-management">
         <div class="panel-header">
           <h2>Semester Management</h2>
           <p class="subtitle">Add semester numbers and names.</p>
@@ -77,7 +102,7 @@
         </form>
       </section>
 
-      <section class="card">
+      <section class="card" id="course-management">
         <div class="panel-header">
           <h2>Course Management</h2>
           <p class="subtitle">Add course, credits, semester, and max marks.</p>
@@ -101,10 +126,10 @@
           <button class="login-button" type="submit">Add Course</button>
         </form>
       </section>
-    </section>
+      </section>
 
-    <section class="dashboard-grid two-column">
-      <section class="card">
+      <section class="dashboard-grid two-column">
+        <section class="card" id="student-management">
         <div class="panel-header">
           <h2>Student Management</h2>
           <p class="subtitle">Add, update, delete, and search students.</p>
@@ -172,7 +197,7 @@
         </form>
       </section>
 
-      <section class="card">
+      <section class="card" id="faculty-management">
         <div class="panel-header">
           <h2>Faculty Management</h2>
           <p class="subtitle">Add faculty and assign to department.</p>
@@ -232,10 +257,10 @@
           </div>
         </form>
       </section>
-    </section>
+      </section>
 
-    <section class="dashboard-grid three-column">
-      <section class="card">
+      <section class="dashboard-grid three-column">
+        <section class="card" id="department-course-mapping">
         <div class="panel-header">
           <h2>Department-Course Mapping</h2>
           <p class="subtitle">Assign courses to departments.</p>
@@ -251,7 +276,7 @@
         </form>
       </section>
 
-      <section class="card">
+      <section class="card" id="faculty-course-assignment">
         <div class="panel-header">
           <h2>Faculty-Course Assignment</h2>
           <p class="subtitle">Assign faculty to course.</p>
@@ -270,7 +295,7 @@
         </form>
       </section>
 
-      <section class="card">
+      <section class="card" id="marks-entry">
         <div class="panel-header">
           <h2>Marks Entry</h2>
           <p class="subtitle">Enter or update marks with validation.</p>
@@ -294,10 +319,10 @@
           <button class="login-button" type="submit">Save Marks</button>
         </form>
       </section>
-    </section>
+      </section>
 
-    <section class="dashboard-grid two-column">
-      <section class="card">
+      <section class="dashboard-grid two-column">
+        <section class="card" id="result-generation">
         <div class="panel-header">
           <h2>Generate Semester Result</h2>
           <p class="subtitle">Run GPA and result generation procedure.</p>
@@ -313,7 +338,7 @@
         </form>
       </section>
 
-      <section class="card">
+      <section class="card" id="delete-student">
         <div class="panel-header">
           <h2>Delete Student</h2>
           <p class="subtitle">Deletion is blocked automatically if marks exist.</p>
@@ -325,10 +350,10 @@
           <button class="login-button danger-button" type="submit">Delete Student</button>
         </form>
       </section>
-    </section>
+      </section>
 
-    <section class="table-grid two-column">
-      <section class="card">
+      <section class="table-grid two-column">
+        <section class="card" id="students-table">
         <div class="panel-header">
           <h2>Students</h2>
           <p class="subtitle">Search result list.</p>
@@ -350,7 +375,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="faculty-table">
         <div class="panel-header">
           <h2>Faculty</h2>
           <p class="subtitle">Registered faculty list.</p>
@@ -371,7 +396,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="courses-table">
         <div class="panel-header">
           <h2>Courses</h2>
           <p class="subtitle">Semester-wise course list.</p>
@@ -392,7 +417,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="department-course-table">
         <div class="panel-header">
           <h2>Department-Course Map</h2>
           <p class="subtitle">Many-to-many relationship view.</p>
@@ -411,7 +436,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="faculty-course-table">
         <div class="panel-header">
           <h2>Faculty-Course Assignments</h2>
           <p class="subtitle">Teaching allocation list.</p>
@@ -430,7 +455,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="marks-table">
         <div class="panel-header">
           <h2>Marks and Grades</h2>
           <p class="subtitle">Marks, grade, and grade point.</p>
@@ -452,7 +477,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="results-table">
         <div class="panel-header">
           <h2>Semester Results</h2>
           <p class="subtitle">Stored GPA and pass/fail status.</p>
@@ -472,7 +497,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="activity-log">
         <div class="panel-header">
           <h2>Activity Log</h2>
           <p class="subtitle">Faculty mark edit tracking.</p>
@@ -491,6 +516,7 @@
             <tbody id="activityTableBody"></tbody>
           </table>
         </div>
+      </section>
       </section>
     </section>
   </main>
