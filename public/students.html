@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="students">
+  <div class="top-bar"></div>
+  <main class="dashboard-layout">
+    <aside class="dashboard-sidebar card">
+      <div class="sidebar-brand">
+        <p class="institution-type">Navigation</p>
+        <h2>Admin Modules</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" data-nav="overview" href="dashboard.html">Overview</a>
+        <a class="sidebar-link" data-nav="departments" href="departments.html">Department Management</a>
+        <a class="sidebar-link" data-nav="semesters" href="semesters.html">Semester Management</a>
+        <a class="sidebar-link" data-nav="courses" href="courses.html">Course Management</a>
+        <a class="sidebar-link" data-nav="students" href="students.html">Student Management</a>
+        <a class="sidebar-link" data-nav="faculty" href="faculty.html">Faculty Management</a>
+        <a class="sidebar-link" data-nav="mappings" href="mappings.html">Course and Faculty Mapping</a>
+        <a class="sidebar-link" data-nav="marks" href="marks.html">Marks Entry</a>
+        <a class="sidebar-link" data-nav="results" href="results.html">Result Generation</a>
+      </nav>
+    </aside>
+
+    <section class="dashboard-shell">
+      <section class="dashboard-header card">
+        <div>
+          <p class="institution-type">Administrator Panel</p>
+          <h1>Student Management</h1>
+          <p class="institution-copy">Add, search, review, and delete students from a dedicated screen.</p>
+        </div>
+        <div class="admin-summary">
+          <strong id="dashboardName">Administrator</strong>
+          <span id="dashboardEmail">-</span>
+          <button class="secondary-button" id="logoutButton" type="button">Logout</button>
+        </div>
+      </section>
+
+      <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
+
+      <section class="card">
+        <div class="panel-header">
+          <h2>Search Students</h2>
+          <p class="subtitle">Search by roll number, name, or department.</p>
+        </div>
+        <section class="toolbar inline-toolbar">
+          <div class="toolbar-group">
+            <label for="studentSearch">Search</label>
+            <input id="studentSearch" type="text" placeholder="STU101 or Harmilan">
+          </div>
+          <div class="toolbar-group">
+            <label for="departmentFilter">Department</label>
+            <select id="departmentFilter">
+              <option value="">All Departments</option>
+            </select>
+          </div>
+          <div class="toolbar-actions">
+            <button class="secondary-button" id="searchButton" type="button">Search</button>
+            <button class="secondary-button" id="refreshButton" type="button">Refresh</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="dashboard-grid two-column">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Add Student</h2>
+            <p class="subtitle">Use student record ID only when updating an existing entry.</p>
+          </div>
+          <form class="stack-form" id="studentForm">
+            <label for="studentId">Student Record ID</label>
+            <input id="studentId" type="number" placeholder="Optional for update">
+
+            <label for="studentRollNo">Roll No</label>
+            <input id="studentRollNo" type="text" placeholder="STU201" required>
+
+            <label for="studentUniversityRollNo">University Roll No</label>
+            <input id="studentUniversityRollNo" type="text" placeholder="UNI2024CSE201" required>
+
+            <label for="studentName">Student Name</label>
+            <input id="studentName" type="text" placeholder="Student full name" required>
+
+            <label for="studentFatherName">Father Name</label>
+            <input id="studentFatherName" type="text" placeholder="Father name" required>
+
+            <label for="studentMotherName">Mother Name</label>
+            <input id="studentMotherName" type="text" placeholder="Mother name" required>
+
+            <label for="studentGender">Gender</label>
+            <select id="studentGender" required>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+
+            <label for="studentDob">Date of Birth</label>
+            <input id="studentDob" type="date" required>
+
+            <label for="studentPhone">Phone No</label>
+            <input id="studentPhone" type="text" placeholder="9876543210" required>
+
+            <label for="studentParentPhone">Parent Phone</label>
+            <input id="studentParentPhone" type="text" placeholder="9876500010" required>
+
+            <label for="studentEmail">Email</label>
+            <input id="studentEmail" type="email" placeholder="student@college.edu" required>
+
+            <label for="studentAddress">Address</label>
+            <input id="studentAddress" type="text" placeholder="Address" required>
+
+            <label for="studentBatch">Batch</label>
+            <input id="studentBatch" type="text" placeholder="2023-2027" required>
+
+            <label for="studentClassBatch">Class Batch</label>
+            <input id="studentClassBatch" type="text" placeholder="2C34" required>
+
+            <label for="studentDepartment">Department</label>
+            <select id="studentDepartment" required></select>
+
+            <label for="studentSemester">Semester</label>
+            <select id="studentSemester" required></select>
+
+            <label for="studentPassword">Password</label>
+            <input id="studentPassword" type="password" placeholder="Required for new student">
+
+            <div class="button-row">
+              <button class="login-button" type="submit">Save Student</button>
+              <button class="secondary-button" id="studentResetButton" type="button">Clear</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="panel-header">
+            <h2>Delete Student</h2>
+            <p class="subtitle">Deletion is restricted when marks already exist.</p>
+          </div>
+          <form class="stack-form" id="deleteStudentForm">
+            <label for="deleteStudentId">Student Record ID</label>
+            <input id="deleteStudentId" type="number" placeholder="Enter student ID" required>
+
+            <button class="login-button danger-button" type="submit">Delete Student</button>
+          </form>
+
+          <div class="panel-spacing table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Roll No</th>
+                  <th>Name</th>
+                  <th>Department</th>
+                  <th>Semester</th>
+                  <th>Faculty</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="admin-common.js"></script>
+  <script src="students.js"></script>
+</body>
+</html>

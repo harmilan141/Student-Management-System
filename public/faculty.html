@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="faculty">
+  <div class="top-bar"></div>
+  <main class="dashboard-layout">
+    <aside class="dashboard-sidebar card">
+      <div class="sidebar-brand">
+        <p class="institution-type">Navigation</p>
+        <h2>Admin Modules</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" data-nav="overview" href="dashboard.html">Overview</a>
+        <a class="sidebar-link" data-nav="departments" href="departments.html">Department Management</a>
+        <a class="sidebar-link" data-nav="semesters" href="semesters.html">Semester Management</a>
+        <a class="sidebar-link" data-nav="courses" href="courses.html">Course Management</a>
+        <a class="sidebar-link" data-nav="students" href="students.html">Student Management</a>
+        <a class="sidebar-link" data-nav="faculty" href="faculty.html">Faculty Management</a>
+        <a class="sidebar-link" data-nav="mappings" href="mappings.html">Course and Faculty Mapping</a>
+        <a class="sidebar-link" data-nav="marks" href="marks.html">Marks Entry</a>
+        <a class="sidebar-link" data-nav="results" href="results.html">Result Generation</a>
+      </nav>
+    </aside>
+
+    <section class="dashboard-shell">
+      <section class="dashboard-header card">
+        <div>
+          <p class="institution-type">Administrator Panel</p>
+          <h1>Faculty Management</h1>
+          <p class="institution-copy">Create faculty accounts and assign them to departments.</p>
+        </div>
+        <div class="admin-summary">
+          <strong id="dashboardName">Administrator</strong>
+          <span id="dashboardEmail">-</span>
+          <button class="secondary-button" id="logoutButton" type="button">Logout</button>
+        </div>
+      </section>
+
+      <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
+
+      <section class="dashboard-grid two-column">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Add Faculty</h2>
+            <p class="subtitle">Use faculty record ID only when updating an existing faculty member.</p>
+          </div>
+          <form class="stack-form" id="facultyForm">
+            <label for="facultyId">Faculty Record ID</label>
+            <input id="facultyId" type="number" placeholder="Optional for update">
+
+            <label for="facultyEmpId">Employee ID</label>
+            <input id="facultyEmpId" type="text" placeholder="EMP2001" required>
+
+            <label for="facultyCode">Faculty Code</label>
+            <input id="facultyCode" type="text" placeholder="FAC301" required>
+
+            <label for="facultyName">Faculty Name</label>
+            <input id="facultyName" type="text" placeholder="Faculty full name" required>
+
+            <label for="facultyGender">Gender</label>
+            <select id="facultyGender" required>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+
+            <label for="facultyDob">Date of Birth</label>
+            <input id="facultyDob" type="date" required>
+
+            <label for="facultyQualification">Qualification</label>
+            <input id="facultyQualification" type="text" placeholder="M.Tech / PhD" required>
+
+            <label for="facultySpecialization">Specialization</label>
+            <input id="facultySpecialization" type="text" placeholder="Database Systems" required>
+
+            <label for="facultyDesignation">Designation</label>
+            <select id="facultyDesignation" required>
+              <option value="Professor">Professor</option>
+              <option value="Associate Professor">Associate Professor</option>
+              <option value="Assistant Professor">Assistant Professor</option>
+              <option value="Lecturer">Lecturer</option>
+            </select>
+
+            <label for="facultyPhone">Phone No</label>
+            <input id="facultyPhone" type="text" placeholder="9876543201" required>
+
+            <label for="facultyEmail">Email</label>
+            <input id="facultyEmail" type="email" placeholder="faculty@college.edu" required>
+
+            <label for="facultyDepartment">Department</label>
+            <select id="facultyDepartment" required></select>
+
+            <label for="facultyPassword">Password</label>
+            <input id="facultyPassword" type="password" placeholder="Required for new faculty">
+
+            <div class="button-row">
+              <button class="login-button" type="submit">Save Faculty</button>
+              <button class="secondary-button" id="facultyResetButton" type="button">Clear</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="panel-header">
+            <h2>Faculty List</h2>
+            <p class="subtitle">Department-linked faculty directory.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Designation</th>
+                  <th>Department</th>
+                </tr>
+              </thead>
+              <tbody id="facultyTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="admin-common.js"></script>
+  <script src="faculty.js"></script>
+</body>
+</html>

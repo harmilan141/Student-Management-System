@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Overview</title>
+  <title>Mappings</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body data-page="overview">
+<body data-page="mappings">
   <div class="top-bar"></div>
   <main class="dashboard-layout">
     <aside class="dashboard-sidebar card">
@@ -14,7 +14,6 @@
         <p class="institution-type">Navigation</p>
         <h2>Admin Modules</h2>
       </div>
-
       <nav class="sidebar-nav">
         <a class="sidebar-link" data-nav="overview" href="dashboard.html">Overview</a>
         <a class="sidebar-link" data-nav="departments" href="departments.html">Department Management</a>
@@ -32,10 +31,8 @@
       <section class="dashboard-header card">
         <div>
           <p class="institution-type">Administrator Panel</p>
-          <h1>Student Management Overview</h1>
-          <p class="institution-copy">
-            Review the current academic snapshot and open a management page from the left sidebar.
-          </p>
+          <h1>Department and Faculty Mapping</h1>
+          <p class="institution-copy">Manage course-to-department and faculty-to-course relationships here.</p>
         </div>
         <div class="admin-summary">
           <strong id="dashboardName">Administrator</strong>
@@ -46,93 +43,72 @@
 
       <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
 
-      <section class="dashboard-grid four-column">
-        <article class="card stat-card">
-          <span>Total Students</span>
-          <strong id="studentCount">0</strong>
-        </article>
-        <article class="card stat-card">
-          <span>Total Faculty</span>
-          <strong id="facultyCount">0</strong>
-        </article>
-        <article class="card stat-card">
-          <span>Total Courses</span>
-          <strong id="courseCount">0</strong>
-        </article>
-        <article class="card stat-card">
-          <span>Departments</span>
-          <strong id="departmentCount">0</strong>
-        </article>
-      </section>
-
       <section class="dashboard-grid two-column">
         <section class="card">
           <div class="panel-header">
-            <h2>Recent Results</h2>
-            <p class="subtitle">Latest semester GPA records.</p>
+            <h2>Department-Course Mapping</h2>
+            <p class="subtitle">Prevents duplicate department-course assignment.</p>
           </div>
-          <div class="table-wrap">
+          <form class="stack-form" id="departmentCourseForm">
+            <label for="mapDepartment">Department</label>
+            <select id="mapDepartment" required></select>
+
+            <label for="mapCourse">Course</label>
+            <select id="mapCourse" required></select>
+
+            <button class="login-button" type="submit">Assign Course</button>
+          </form>
+
+          <div class="panel-spacing table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Roll No</th>
-                  <th>Name</th>
-                  <th>Semester</th>
-                  <th>GPA</th>
-                  <th>Status</th>
+                  <th>Department</th>
+                  <th>Course Code</th>
+                  <th>Course Name</th>
                 </tr>
               </thead>
-              <tbody id="resultsTableBody"></tbody>
+              <tbody id="departmentCoursesTableBody"></tbody>
             </table>
           </div>
         </section>
 
         <section class="card">
           <div class="panel-header">
-            <h2>Recent Activity</h2>
-            <p class="subtitle">Latest marks edit log entries.</p>
+            <h2>Faculty-Course Assignment</h2>
+            <p class="subtitle">Maps faculty to course and department.</p>
           </div>
-          <div class="table-wrap">
+          <form class="stack-form" id="facultyCourseForm">
+            <label for="assignFaculty">Faculty</label>
+            <select id="assignFaculty" required></select>
+
+            <label for="assignCourse">Course</label>
+            <select id="assignCourse" required></select>
+
+            <label for="assignDepartment">Department</label>
+            <select id="assignDepartment" required></select>
+
+            <button class="login-button" type="submit">Assign Faculty</button>
+          </form>
+
+          <div class="panel-spacing table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Faculty</th>
-                  <th>Student</th>
                   <th>Course</th>
-                  <th>New Marks</th>
-                  <th>Time</th>
+                  <th>Department</th>
                 </tr>
               </thead>
-              <tbody id="activityTableBody"></tbody>
+              <tbody id="facultyCoursesTableBody"></tbody>
             </table>
           </div>
         </section>
-      </section>
-
-      <section class="card">
-        <div class="panel-header">
-          <h2>Quick View</h2>
-          <p class="subtitle">Newly added students in the system.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Roll No</th>
-                <th>Name</th>
-                <th>Department</th>
-                <th>Semester</th>
-                <th>Batch</th>
-              </tr>
-            </thead>
-            <tbody id="studentsTableBody"></tbody>
-          </table>
-        </div>
       </section>
     </section>
   </main>
 
   <script src="admin-common.js"></script>
-  <script src="dashboard.js"></script>
+  <script src="mappings.js"></script>
 </body>
 </html>

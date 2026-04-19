@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Overview</title>
+  <title>Course Management</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body data-page="overview">
+<body data-page="courses">
   <div class="top-bar"></div>
   <main class="dashboard-layout">
     <aside class="dashboard-sidebar card">
@@ -14,7 +14,6 @@
         <p class="institution-type">Navigation</p>
         <h2>Admin Modules</h2>
       </div>
-
       <nav class="sidebar-nav">
         <a class="sidebar-link" data-nav="overview" href="dashboard.html">Overview</a>
         <a class="sidebar-link" data-nav="departments" href="departments.html">Department Management</a>
@@ -32,10 +31,8 @@
       <section class="dashboard-header card">
         <div>
           <p class="institution-type">Administrator Panel</p>
-          <h1>Student Management Overview</h1>
-          <p class="institution-copy">
-            Review the current academic snapshot and open a management page from the left sidebar.
-          </p>
+          <h1>Course Management</h1>
+          <p class="institution-copy">Create courses with credits, semester, and maximum marks.</p>
         </div>
         <div class="admin-summary">
           <strong id="dashboardName">Administrator</strong>
@@ -46,93 +43,57 @@
 
       <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
 
-      <section class="dashboard-grid four-column">
-        <article class="card stat-card">
-          <span>Total Students</span>
-          <strong id="studentCount">0</strong>
-        </article>
-        <article class="card stat-card">
-          <span>Total Faculty</span>
-          <strong id="facultyCount">0</strong>
-        </article>
-        <article class="card stat-card">
-          <span>Total Courses</span>
-          <strong id="courseCount">0</strong>
-        </article>
-        <article class="card stat-card">
-          <span>Departments</span>
-          <strong id="departmentCount">0</strong>
-        </article>
-      </section>
-
       <section class="dashboard-grid two-column">
         <section class="card">
           <div class="panel-header">
-            <h2>Recent Results</h2>
-            <p class="subtitle">Latest semester GPA records.</p>
+            <h2>Add Course</h2>
+            <p class="subtitle">Required for grade and GPA logic.</p>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Roll No</th>
-                  <th>Name</th>
-                  <th>Semester</th>
-                  <th>GPA</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="resultsTableBody"></tbody>
-            </table>
-          </div>
+          <form class="stack-form" id="courseForm">
+            <label for="courseCode">Course Code</label>
+            <input id="courseCode" type="text" placeholder="CSE401" required>
+
+            <label for="courseName">Course Name</label>
+            <input id="courseName" type="text" placeholder="Database Management Systems" required>
+
+            <label for="courseCredits">Credits</label>
+            <input id="courseCredits" type="number" min="1" placeholder="4" required>
+
+            <label for="courseSemester">Semester</label>
+            <select id="courseSemester" required></select>
+
+            <label for="courseMaxMarks">Max Marks</label>
+            <input id="courseMaxMarks" type="number" min="1" value="100" required>
+
+            <button class="login-button" type="submit">Add Course</button>
+          </form>
         </section>
 
         <section class="card">
           <div class="panel-header">
-            <h2>Recent Activity</h2>
-            <p class="subtitle">Latest marks edit log entries.</p>
+            <h2>Course List</h2>
+            <p class="subtitle">Semester-wise course listing.</p>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Faculty</th>
-                  <th>Student</th>
-                  <th>Course</th>
-                  <th>New Marks</th>
-                  <th>Time</th>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Credits</th>
+                  <th>Semester</th>
+                  <th>Department</th>
                 </tr>
               </thead>
-              <tbody id="activityTableBody"></tbody>
+              <tbody id="coursesTableBody"></tbody>
             </table>
           </div>
         </section>
-      </section>
-
-      <section class="card">
-        <div class="panel-header">
-          <h2>Quick View</h2>
-          <p class="subtitle">Newly added students in the system.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Roll No</th>
-                <th>Name</th>
-                <th>Department</th>
-                <th>Semester</th>
-                <th>Batch</th>
-              </tr>
-            </thead>
-            <tbody id="studentsTableBody"></tbody>
-          </table>
-        </div>
       </section>
     </section>
   </main>
 
   <script src="admin-common.js"></script>
-  <script src="dashboard.js"></script>
+  <script src="courses.js"></script>
 </body>
 </html>
