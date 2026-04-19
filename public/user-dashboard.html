@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="top-bar"></div>
+  <main class="dashboard-shell">
+    <section class="dashboard-header card">
+      <div>
+        <p class="institution-type" id="userRoleLabel">Portal User</p>
+        <h1 id="userDashboardHeading">Dashboard</h1>
+        <p class="institution-copy" id="userDashboardIntro">
+          Your account details are shown below.
+        </p>
+      </div>
+      <div class="admin-summary">
+        <strong id="userName">User</strong>
+        <span id="userEmail">-</span>
+        <button class="secondary-button" id="userLogoutButton" type="button">Logout</button>
+      </div>
+    </section>
+
+    <p class="status-message" id="userStatus" aria-live="polite"></p>
+
+    <section class="table-grid single-column">
+      <section class="card">
+        <div class="panel-header">
+          <h2>Profile Information</h2>
+          <p class="subtitle">Account details provided by the system.</p>
+        </div>
+        <div class="institution-meta details-grid" id="userDetails"></div>
+      </section>
+    </section>
+
+    <section class="table-grid two-column" id="userContent"></section>
+  </main>
+
+  <script src="user-dashboard.js"></script>
+</body>
+</html>

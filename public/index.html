@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="top-bar"></div>
+  <main class="page-shell">
+    <section class="institution-panel">
+      <p class="institution-type">College ERP Portal</p>
+      <h1>Student Management System</h1>
+      <p class="institution-copy">
+        Official login portal for admin, students, and faculty. New accounts are created only by the admin.
+      </p>
+
+      <div class="institution-meta">
+        <div>
+          <span>Access</span>
+          <strong>Admin, Student, Faculty</strong>
+        </div>
+        <div>
+          <span>Registration</span>
+          <strong>Admin Controlled</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-panel">
+      <div class="panel-header">
+        <h2>Portal Login</h2>
+        <p class="subtitle">Select your role and sign in. Signup is disabled for all users.</p>
+      </div>
+
+      <div class="role-switcher" aria-label="Select user role">
+        <button class="role-chip active" data-role="admin" type="button">Admin</button>
+        <button class="role-chip" data-role="student" type="button">Student</button>
+        <button class="role-chip" data-role="faculty" type="button">Faculty</button>
+      </div>
+
+      <div class="role-card" id="roleCard">
+        <h3>Administrator Login</h3>
+        <p>Manage student records, faculty records, and assignments.</p>
+      </div>
+
+      <p class="status-message" id="statusMessage" aria-live="polite"></p>
+
+      <form class="login-form active" id="loginForm">
+        <label for="loginUserId">User ID</label>
+        <input id="loginUserId" name="loginUserId" type="text" placeholder="Enter admin ID" required>
+
+        <label for="loginPassword">Password</label>
+        <div class="password-row">
+          <input id="loginPassword" name="loginPassword" type="password" placeholder="Enter password" required>
+          <button class="toggle-password" data-target="loginPassword" type="button">Show</button>
+        </div>
+
+        <div class="form-row">
+          <label class="remember">
+            <input type="checkbox" name="remember">
+            <span>Remember me</span>
+          </label>
+          <span class="text-muted">Accounts are added by admin only</span>
+        </div>
+
+        <button class="login-button" type="submit">Sign In</button>
+      </form>
+
+      <p class="helper-note" id="helperNote">Sample admin login: harmilan_admin / admin123</p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
