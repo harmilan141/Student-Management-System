@@ -332,6 +332,14 @@ body {
   color: var(--primary-dark);
 }
 
+.stat-note {
+  position: relative;
+  z-index: 1;
+  margin: 12px 0 0;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
 .stat-card {
   position: relative;
   overflow: hidden;
