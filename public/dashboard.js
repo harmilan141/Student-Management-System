@@ -14,6 +14,17 @@ async function loadOverview() {
     document.getElementById("courseCount").textContent = data.courses.length;
     document.getElementById("departmentCount").textContent = data.departments.length;
 
+    if (
+      data.students.length === 0 &&
+      data.faculty.length === 0 &&
+      data.courses.length === 0 &&
+      data.departments.length === 0
+    ) {
+      setStatus("No records were found in the database. Run sample-data.sql in MySQL Workbench, then refresh this page.", "error");
+    } else {
+      setStatus("Overview loaded successfully.", "success");
+    }
+
     renderTableBody(
       "resultsTableBody",
       data.results.slice(0, 8).map((item) => ({

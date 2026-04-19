@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mappings</title>
+  <title>Marks Entry</title>
   <link rel="stylesheet" href="style.css?v=20260419b">
 </head>
-<body data-page="mappings">
+<body data-page="marks">
   <div class="top-bar"></div>
   <main class="dashboard-layout">
     <aside class="dashboard-sidebar card">
@@ -31,8 +31,8 @@
       <section class="dashboard-header card">
         <div>
           <p class="institution-type">Administrator Panel</p>
-          <h1>Department and Faculty Mapping</h1>
-          <p class="institution-copy">Manage course-to-department and faculty-to-course relationships here.</p>
+          <h1>Marks Entry</h1>
+          <p class="institution-copy">Enter and update marks with validation and activity tracking.</p>
         </div>
         <div class="admin-summary">
           <strong id="dashboardName">Administrator</strong>
@@ -46,69 +46,77 @@
       <section class="dashboard-grid two-column">
         <section class="card">
           <div class="panel-header">
-            <h2>Department-Course Mapping</h2>
-            <p class="subtitle">Prevents duplicate department-course assignment.</p>
+            <h2>Enter or Update Marks</h2>
+            <p class="subtitle">Provide marks record ID only when updating an existing record.</p>
           </div>
-          <form class="stack-form" id="departmentCourseForm">
-            <label for="mapDepartment">Department</label>
-            <select id="mapDepartment" required></select>
+          <form class="stack-form" id="marksForm">
+            <label for="marksId">Marks Record ID</label>
+            <input id="marksId" type="number" placeholder="Optional for update">
 
-            <label for="mapCourse">Course</label>
-            <select id="mapCourse" required></select>
+            <label for="marksRollNo">Student Roll No</label>
+            <input id="marksRollNo" type="text" placeholder="STU101" required>
 
-            <button class="login-button" type="submit">Assign Course</button>
+            <label for="marksCourse">Course</label>
+            <select id="marksCourse" required></select>
+
+            <label for="marksFaculty">Faculty</label>
+            <select id="marksFaculty" required></select>
+
+            <label for="marksObtained">Marks Obtained</label>
+            <input id="marksObtained" type="number" min="0" step="0.01" placeholder="88" required>
+
+            <button class="login-button" type="submit">Save Marks</button>
           </form>
-
-          <div class="panel-spacing table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Department</th>
-                  <th>Course Code</th>
-                  <th>Course Name</th>
-                </tr>
-              </thead>
-              <tbody id="departmentCoursesTableBody"></tbody>
-            </table>
-          </div>
         </section>
 
         <section class="card">
           <div class="panel-header">
-            <h2>Faculty-Course Assignment</h2>
-            <p class="subtitle">Maps faculty to course and department.</p>
+            <h2>Marks and Grades</h2>
+            <p class="subtitle">Current academic performance entries.</p>
           </div>
-          <form class="stack-form" id="facultyCourseForm">
-            <label for="assignFaculty">Faculty</label>
-            <select id="assignFaculty" required></select>
-
-            <label for="assignCourse">Course</label>
-            <select id="assignCourse" required></select>
-
-            <label for="assignDepartment">Department</label>
-            <select id="assignDepartment" required></select>
-
-            <button class="login-button" type="submit">Assign Faculty</button>
-          </form>
-
-          <div class="panel-spacing table-wrap">
+          <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Faculty</th>
+                  <th>ID</th>
+                  <th>Roll No</th>
                   <th>Course</th>
-                  <th>Department</th>
+                  <th>Faculty</th>
+                  <th>Marks</th>
+                  <th>Grade</th>
                 </tr>
               </thead>
-              <tbody id="facultyCoursesTableBody"></tbody>
+              <tbody id="marksTableBody"></tbody>
             </table>
           </div>
         </section>
+      </section>
+
+      <section class="card">
+        <div class="panel-header">
+          <h2>Activity Log</h2>
+          <p class="subtitle">Tracks faculty mark changes with time.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Faculty</th>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Old Marks</th>
+                <th>New Marks</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="activityTableBody"></tbody>
+          </table>
+        </div>
       </section>
     </section>
   </main>
 
   <script src="admin-common.js?v=20260419b"></script>
-  <script src="mappings.js?v=20260419b"></script>
+  <script src="marks.js?v=20260419b"></script>
 </body>
 </html>

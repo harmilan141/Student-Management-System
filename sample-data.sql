@@ -1,12 +1,66 @@
 USE defaultdb;
 
 /*
-  Demo seed script for additional data.
+  Demo seed script for a blank database.
   Inserts:
+  - departments
+  - semesters
+  - admin
+  - courses
   - 15 faculty members
   - 100 students
+  - department-course mappings
+  - faculty-course assignments
   Safe to run more than once because it uses INSERT IGNORE with unique IDs.
 */
+
+INSERT IGNORE INTO departments (dept_id, dept_code, dept_name) VALUES
+(1, 'CSE', 'Computer Science and Engineering'),
+(2, 'IT', 'Information Technology'),
+(3, 'ECE', 'Electronics and Communication Engineering');
+
+INSERT IGNORE INTO semesters (sem_id, sem_number, sem_name) VALUES
+(1, 1, 'Semester 1'),
+(2, 2, 'Semester 2'),
+(3, 3, 'Semester 3'),
+(4, 4, 'Semester 4'),
+(5, 5, 'Semester 5'),
+(6, 6, 'Semester 6'),
+(7, 7, 'Semester 7'),
+(8, 8, 'Semester 8');
+
+INSERT IGNORE INTO admins (
+  admin_id,
+  admin_username,
+  full_name,
+  email,
+  password_hash
+) VALUES
+(1, 'harmilan_admin', 'Harmilan', 'harmilan.admin@college.edu', SHA2('admin123', 256));
+
+INSERT IGNORE INTO courses (
+  course_id,
+  course_code,
+  course_name,
+  credits,
+  sem_id,
+  max_marks
+) VALUES
+(1, 'CSE101', 'Programming Fundamentals', 4, 1, 100),
+(2, 'CSE201', 'Data Structures', 4, 2, 100),
+(3, 'CSE301', 'Database Management Systems', 4, 3, 100),
+(4, 'CSE401', 'Operating Systems', 4, 4, 100),
+(5, 'CSE501', 'Computer Networks', 4, 5, 100),
+(6, 'CSE601', 'Software Engineering', 3, 6, 100),
+(7, 'IT101', 'Web Technology', 4, 1, 100),
+(8, 'IT201', 'Java Programming', 4, 2, 100),
+(9, 'IT301', 'Cloud Computing', 4, 3, 100),
+(10, 'IT401', 'Information Security', 4, 4, 100),
+(11, 'ECE101', 'Basic Electronics', 4, 1, 100),
+(12, 'ECE201', 'Digital Logic Design', 4, 2, 100),
+(13, 'ECE301', 'Signals and Systems', 4, 3, 100),
+(14, 'ECE401', 'Microprocessors', 4, 4, 100),
+(15, 'ECE501', 'Embedded Systems', 4, 5, 100);
 
 INSERT IGNORE INTO faculty (
   emp_id,
@@ -80,6 +134,23 @@ SELECT
     ELSE (SELECT dept_id FROM departments WHERE dept_code = 'ECE')
   END AS dept_id
 FROM seq;
+
+INSERT IGNORE INTO department_course_mapping (dept_id, course_id) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
+(1, 6),
+(2, 7),
+(2, 8),
+(2, 9),
+(2, 10),
+(3, 11),
+(3, 12),
+(3, 13),
+(3, 14),
+(3, 15);
 
 INSERT IGNORE INTO students (
   roll_no,
@@ -179,6 +250,30 @@ SELECT
   END AS dept_id,
   (SELECT sem_id FROM semesters WHERE sem_number = ((n - 1) MOD 8) + 1) AS sem_id
 FROM seq;
+
+INSERT IGNORE INTO faculty_course_assignment (faculty_id, course_id, dept_id) VALUES
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC401'), (SELECT course_id FROM courses WHERE course_code = 'CSE101'), 1),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC402'), (SELECT course_id FROM courses WHERE course_code = 'CSE201'), 1),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC403'), (SELECT course_id FROM courses WHERE course_code = 'CSE301'), 1),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC404'), (SELECT course_id FROM courses WHERE course_code = 'CSE401'), 1),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC405'), (SELECT course_id FROM courses WHERE course_code = 'CSE501'), 1),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC406'), (SELECT course_id FROM courses WHERE course_code = 'IT101'), 2),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC407'), (SELECT course_id FROM courses WHERE course_code = 'IT201'), 2),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC408'), (SELECT course_id FROM courses WHERE course_code = 'IT301'), 2),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC409'), (SELECT course_id FROM courses WHERE course_code = 'IT401'), 2),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC410'), (SELECT course_id FROM courses WHERE course_code = 'ECE101'), 3),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC411'), (SELECT course_id FROM courses WHERE course_code = 'ECE201'), 3),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC412'), (SELECT course_id FROM courses WHERE course_code = 'ECE301'), 3),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC413'), (SELECT course_id FROM courses WHERE course_code = 'ECE401'), 3),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC414'), (SELECT course_id FROM courses WHERE course_code = 'ECE501'), 3),
+((SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC415'), (SELECT course_id FROM courses WHERE course_code = 'CSE601'), 1);
+
+INSERT IGNORE INTO marks (student_id, course_id, faculty_id, marks_obtained) VALUES
+((SELECT student_id FROM students WHERE roll_no = 'STU1001'), (SELECT course_id FROM courses WHERE course_code = 'CSE101'), (SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC401'), 84),
+((SELECT student_id FROM students WHERE roll_no = 'STU1002'), (SELECT course_id FROM courses WHERE course_code = 'IT101'), (SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC406'), 78),
+((SELECT student_id FROM students WHERE roll_no = 'STU1003'), (SELECT course_id FROM courses WHERE course_code = 'ECE101'), (SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC410'), 88),
+((SELECT student_id FROM students WHERE roll_no = 'STU1004'), (SELECT course_id FROM courses WHERE course_code = 'CSE201'), (SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC402'), 74),
+((SELECT student_id FROM students WHERE roll_no = 'STU1005'), (SELECT course_id FROM courses WHERE course_code = 'IT201'), (SELECT faculty_id FROM faculty WHERE faculty_code = 'FAC407'), 81);
 
 SELECT COUNT(*) AS total_faculty_after_seed FROM faculty;
 SELECT COUNT(*) AS total_students_after_seed FROM students;
