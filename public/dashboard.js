@@ -10,6 +10,8 @@ if (admin && admin.role !== "admin") {
 }
 
 const dashboardStatus = document.getElementById("dashboardStatus");
+const sidebarLinks = document.querySelectorAll(".sidebar-link");
+const dashboardPanels = document.querySelectorAll(".dashboard-panel");
 let lookups = {
   departments: [],
   semesters: [],
@@ -26,6 +28,16 @@ function setDashboardStatus(message, type = "") {
   if (type) {
     dashboardStatus.classList.add(type);
   }
+}
+
+function openPanel(panelId) {
+  dashboardPanels.forEach((panel) => {
+    panel.classList.toggle("active", panel.id === panelId);
+  });
+
+  sidebarLinks.forEach((link) => {
+    link.classList.toggle("active", link.dataset.panel === panelId);
+  });
 }
 
 function fillSelect(selectId, items, valueKey, labelBuilder, placeholder) {
@@ -480,10 +492,15 @@ document.getElementById("logoutButton").addEventListener("click", () => {
   window.location.href = "index.html";
 });
 
+sidebarLinks.forEach((link) => {
+  link.addEventListener("click", () => openPanel(link.dataset.panel));
+});
+
 (async function init() {
   try {
     await loadLookups();
     await loadDashboardData();
+    openPanel("overview-panel");
   } catch (error) {
     setDashboardStatus(error.message || "Unable to initialize dashboard.", "error");
   }

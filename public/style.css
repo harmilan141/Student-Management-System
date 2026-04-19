@@ -22,7 +22,6 @@ body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text-main);
   background: var(--bg);
-  scroll-behavior: smooth;
 }
 
 .top-bar {
@@ -132,13 +131,17 @@ body {
 }
 
 .sidebar-link {
+  width: 100%;
+  text-align: left;
   padding: 12px 14px;
   border-radius: 8px;
   color: var(--text-main);
+  border: 1px solid transparent;
   text-decoration: none;
   font-weight: 600;
   background: var(--surface-muted);
-  border: 1px solid transparent;
+  font: inherit;
+  cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
@@ -147,6 +150,12 @@ body {
   background: #e7eef8;
   border-color: var(--border);
   color: var(--primary-dark);
+}
+
+.sidebar-link.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
 }
 
 .dashboard-header {
@@ -209,6 +218,10 @@ body {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 20px;
+}
+
+.inline-toolbar {
+  margin-top: 18px;
 }
 
 .toolbar-group {
@@ -295,6 +308,18 @@ body {
 
 .status-message.error {
   color: var(--danger);
+}
+
+.dashboard-panel {
+  display: none;
+}
+
+.dashboard-panel.active {
+  display: block;
+}
+
+.panel-spacing {
+  margin-top: 20px;
 }
 
 .login-form {

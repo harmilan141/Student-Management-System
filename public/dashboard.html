@@ -16,30 +16,34 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a href="#overview" class="sidebar-link">Overview</a>
-        <a href="#department-management" class="sidebar-link">Department Management</a>
-        <a href="#semester-management" class="sidebar-link">Semester Management</a>
-        <a href="#course-management" class="sidebar-link">Course Management</a>
-        <a href="#student-management" class="sidebar-link">Student Management</a>
-        <a href="#faculty-management" class="sidebar-link">Faculty Management</a>
-        <a href="#department-course-mapping" class="sidebar-link">Department Course Mapping</a>
-        <a href="#faculty-course-assignment" class="sidebar-link">Faculty Course Assignment</a>
-        <a href="#marks-entry" class="sidebar-link">Marks Entry</a>
-        <a href="#result-generation" class="sidebar-link">Result Generation</a>
-        <a href="#students-table" class="sidebar-link">Student List</a>
-        <a href="#faculty-table" class="sidebar-link">Faculty List</a>
-        <a href="#courses-table" class="sidebar-link">Course List</a>
-        <a href="#activity-log" class="sidebar-link">Activity Log</a>
+        <button class="sidebar-link active" data-panel="overview-panel" type="button">Overview</button>
+        <button class="sidebar-link" data-panel="department-panel" type="button">Department Management</button>
+        <button class="sidebar-link" data-panel="semester-panel" type="button">Semester Management</button>
+        <button class="sidebar-link" data-panel="course-panel" type="button">Course Management</button>
+        <button class="sidebar-link" data-panel="student-panel" type="button">Student Management</button>
+        <button class="sidebar-link" data-panel="faculty-panel" type="button">Faculty Management</button>
+        <button class="sidebar-link" data-panel="department-course-panel" type="button">Department Course Mapping</button>
+        <button class="sidebar-link" data-panel="faculty-course-panel" type="button">Faculty Course Assignment</button>
+        <button class="sidebar-link" data-panel="marks-panel" type="button">Marks Entry</button>
+        <button class="sidebar-link" data-panel="result-panel" type="button">Result Generation</button>
+        <button class="sidebar-link" data-panel="students-list-panel" type="button">Student List</button>
+        <button class="sidebar-link" data-panel="faculty-list-panel" type="button">Faculty List</button>
+        <button class="sidebar-link" data-panel="courses-list-panel" type="button">Course List</button>
+        <button class="sidebar-link" data-panel="department-course-list-panel" type="button">Department Course List</button>
+        <button class="sidebar-link" data-panel="faculty-course-list-panel" type="button">Faculty Course List</button>
+        <button class="sidebar-link" data-panel="marks-list-panel" type="button">Marks and Grades</button>
+        <button class="sidebar-link" data-panel="results-list-panel" type="button">Semester Results</button>
+        <button class="sidebar-link" data-panel="activity-log-panel" type="button">Activity Log</button>
       </nav>
     </aside>
 
     <section class="dashboard-shell">
-      <section class="dashboard-header card" id="overview">
+      <section class="dashboard-header card">
         <div>
           <p class="institution-type">Administrator Panel</p>
           <h1>Student Management Dashboard</h1>
           <p class="institution-copy">
-            Manage departments, semesters, students, faculty, courses, mappings, marks, GPA, and results.
+            Use the left sidebar to open one module at a time.
           </p>
         </div>
         <div class="admin-summary">
@@ -51,472 +55,522 @@
 
       <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
 
-      <section class="toolbar card">
-        <div class="toolbar-group">
-          <label for="studentSearch">Search Students</label>
-          <input id="studentSearch" type="text" placeholder="Search by roll no, name, or department">
-        </div>
-        <div class="toolbar-group">
-          <label for="departmentFilter">Department Filter</label>
-          <select id="departmentFilter">
-            <option value="">All Departments</option>
-          </select>
-        </div>
-        <div class="toolbar-actions">
-          <button class="secondary-button" id="searchButton" type="button">Search</button>
-          <button class="secondary-button" id="refreshButton" type="button">Refresh</button>
-        </div>
-      </section>
-
-      <section class="dashboard-grid three-column">
-        <section class="card" id="department-management">
-        <div class="panel-header">
-          <h2>Department Management</h2>
-          <p class="subtitle">Add and update departments.</p>
-        </div>
-        <form class="stack-form" id="departmentForm">
-          <input id="departmentId" type="hidden">
-          <label for="deptCode">Department Code</label>
-          <input id="deptCode" type="text" placeholder="CSE" required>
-
-          <label for="deptName">Department Name</label>
-          <input id="deptName" type="text" placeholder="Computer Science and Engineering" required>
-
-          <button class="login-button" type="submit">Save Department</button>
-        </form>
-      </section>
-
-      <section class="card" id="semester-management">
-        <div class="panel-header">
-          <h2>Semester Management</h2>
-          <p class="subtitle">Add semester numbers and names.</p>
-        </div>
-        <form class="stack-form" id="semesterForm">
-          <label for="semNumber">Semester Number</label>
-          <input id="semNumber" type="number" min="1" max="8" placeholder="4" required>
-
-          <label for="semName">Semester Name</label>
-          <input id="semName" type="text" placeholder="Semester 4" required>
-
-          <button class="login-button" type="submit">Add Semester</button>
-        </form>
-      </section>
-
-      <section class="card" id="course-management">
-        <div class="panel-header">
-          <h2>Course Management</h2>
-          <p class="subtitle">Add course, credits, semester, and max marks.</p>
-        </div>
-        <form class="stack-form" id="courseForm">
-          <label for="courseCode">Course Code</label>
-          <input id="courseCode" type="text" placeholder="CSE401" required>
-
-          <label for="courseName">Course Name</label>
-          <input id="courseName" type="text" placeholder="Database Management Systems" required>
-
-          <label for="courseCredits">Credits</label>
-          <input id="courseCredits" type="number" min="1" placeholder="4" required>
-
-          <label for="courseSemester">Semester</label>
-          <select id="courseSemester" required></select>
-
-          <label for="courseMaxMarks">Max Marks</label>
-          <input id="courseMaxMarks" type="number" min="1" value="100" required>
-
-          <button class="login-button" type="submit">Add Course</button>
-        </form>
-      </section>
-      </section>
-
-      <section class="dashboard-grid two-column">
-        <section class="card" id="student-management">
-        <div class="panel-header">
-          <h2>Student Management</h2>
-          <p class="subtitle">Add, update, delete, and search students.</p>
-        </div>
-        <form class="stack-form" id="studentForm">
-          <label for="studentId">Student ID</label>
-          <input id="studentId" type="hidden">
-
-          <label for="studentRollNo">Roll No</label>
-          <input id="studentRollNo" type="text" placeholder="STU201" required>
-
-          <label for="studentUniversityRollNo">University Roll No</label>
-          <input id="studentUniversityRollNo" type="text" placeholder="UNI2024CSE201" required>
-
-          <label for="studentName">Student Name</label>
-          <input id="studentName" type="text" placeholder="Student full name" required>
-
-          <label for="studentFatherName">Father Name</label>
-          <input id="studentFatherName" type="text" placeholder="Father name" required>
-
-          <label for="studentMotherName">Mother Name</label>
-          <input id="studentMotherName" type="text" placeholder="Mother name" required>
-
-          <label for="studentGender">Gender</label>
-          <select id="studentGender" required>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-
-          <label for="studentDob">Date of Birth</label>
-          <input id="studentDob" type="date" required>
-
-          <label for="studentPhone">Phone No</label>
-          <input id="studentPhone" type="text" placeholder="9876543210" required>
-
-          <label for="studentParentPhone">Parent Phone</label>
-          <input id="studentParentPhone" type="text" placeholder="9876500010" required>
-
-          <label for="studentEmail">Email</label>
-          <input id="studentEmail" type="email" placeholder="student@college.edu" required>
-
-          <label for="studentAddress">Address</label>
-          <input id="studentAddress" type="text" placeholder="Address" required>
-
-          <label for="studentBatch">Batch</label>
-          <input id="studentBatch" type="text" placeholder="2023-2027" required>
-
-          <label for="studentClassBatch">Class Batch</label>
-          <input id="studentClassBatch" type="text" placeholder="2C34" required>
-
-          <label for="studentDepartment">Department</label>
-          <select id="studentDepartment" required></select>
-
-          <label for="studentSemester">Semester</label>
-          <select id="studentSemester" required></select>
-
-          <label for="studentPassword">Password</label>
-          <input id="studentPassword" type="password" placeholder="Set password for new student">
-
-          <div class="button-row">
-            <button class="login-button" type="submit">Save Student</button>
-            <button class="secondary-button" id="studentResetButton" type="button">Clear</button>
+      <section class="dashboard-panel active" id="overview-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Overview</h2>
+            <p class="subtitle">Choose a module from the left sidebar to manage your system.</p>
           </div>
-        </form>
-      </section>
-
-      <section class="card" id="faculty-management">
-        <div class="panel-header">
-          <h2>Faculty Management</h2>
-          <p class="subtitle">Add faculty and assign to department.</p>
-        </div>
-        <form class="stack-form" id="facultyForm">
-          <label for="facultyId">Faculty ID</label>
-          <input id="facultyId" type="hidden">
-
-          <label for="facultyEmpId">Employee ID</label>
-          <input id="facultyEmpId" type="text" placeholder="EMP2001" required>
-
-          <label for="facultyCode">Faculty Code</label>
-          <input id="facultyCode" type="text" placeholder="FAC301" required>
-
-          <label for="facultyName">Faculty Name</label>
-          <input id="facultyName" type="text" placeholder="Faculty full name" required>
-
-          <label for="facultyGender">Gender</label>
-          <select id="facultyGender" required>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-
-          <label for="facultyDob">Date of Birth</label>
-          <input id="facultyDob" type="date" required>
-
-          <label for="facultyQualification">Qualification</label>
-          <input id="facultyQualification" type="text" placeholder="M.Tech / PhD" required>
-
-          <label for="facultySpecialization">Specialization</label>
-          <input id="facultySpecialization" type="text" placeholder="Database Systems" required>
-
-          <label for="facultyDesignation">Designation</label>
-          <select id="facultyDesignation" required>
-            <option value="Professor">Professor</option>
-            <option value="Associate Professor">Associate Professor</option>
-            <option value="Assistant Professor">Assistant Professor</option>
-            <option value="Lecturer">Lecturer</option>
-          </select>
-
-          <label for="facultyPhone">Phone No</label>
-          <input id="facultyPhone" type="text" placeholder="9876543201" required>
-
-          <label for="facultyEmail">Email</label>
-          <input id="facultyEmail" type="email" placeholder="faculty@college.edu" required>
-
-          <label for="facultyDepartment">Department</label>
-          <select id="facultyDepartment" required></select>
-
-          <label for="facultyPassword">Password</label>
-          <input id="facultyPassword" type="password" placeholder="Set password for new faculty">
-
-          <div class="button-row">
-            <button class="login-button" type="submit">Save Faculty</button>
-            <button class="secondary-button" id="facultyResetButton" type="button">Clear</button>
+          <div class="institution-meta details-grid">
+            <div>
+              <span>Dashboard Mode</span>
+              <strong>Sidebar Navigation</strong>
+            </div>
+            <div>
+              <span>Current Access</span>
+              <strong>Administrator</strong>
+            </div>
+            <div>
+              <span>Main Modules</span>
+              <strong>Students, Faculty, Courses, Results</strong>
+            </div>
+            <div>
+              <span>Database</span>
+              <strong>defaultdb</strong>
+            </div>
           </div>
-        </form>
-      </section>
-      </section>
-
-      <section class="dashboard-grid three-column">
-        <section class="card" id="department-course-mapping">
-        <div class="panel-header">
-          <h2>Department-Course Mapping</h2>
-          <p class="subtitle">Assign courses to departments.</p>
-        </div>
-        <form class="stack-form" id="departmentCourseForm">
-          <label for="mapDepartment">Department</label>
-          <select id="mapDepartment" required></select>
-
-          <label for="mapCourse">Course</label>
-          <select id="mapCourse" required></select>
-
-          <button class="login-button" type="submit">Assign Course</button>
-        </form>
+        </section>
       </section>
 
-      <section class="card" id="faculty-course-assignment">
-        <div class="panel-header">
-          <h2>Faculty-Course Assignment</h2>
-          <p class="subtitle">Assign faculty to course.</p>
-        </div>
-        <form class="stack-form" id="facultyCourseForm">
-          <label for="assignFaculty">Faculty</label>
-          <select id="assignFaculty" required></select>
+      <section class="dashboard-panel" id="department-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Department Management</h2>
+            <p class="subtitle">Add and update departments.</p>
+          </div>
+          <form class="stack-form" id="departmentForm">
+            <input id="departmentId" type="hidden">
+            <label for="deptCode">Department Code</label>
+            <input id="deptCode" type="text" placeholder="CSE" required>
 
-          <label for="assignCourse">Course</label>
-          <select id="assignCourse" required></select>
+            <label for="deptName">Department Name</label>
+            <input id="deptName" type="text" placeholder="Computer Science and Engineering" required>
 
-          <label for="assignDepartment">Department</label>
-          <select id="assignDepartment" required></select>
-
-          <button class="login-button" type="submit">Assign Faculty</button>
-        </form>
+            <button class="login-button" type="submit">Save Department</button>
+          </form>
+        </section>
       </section>
 
-      <section class="card" id="marks-entry">
-        <div class="panel-header">
-          <h2>Marks Entry</h2>
-          <p class="subtitle">Enter or update marks with validation.</p>
-        </div>
-        <form class="stack-form" id="marksForm">
-          <label for="marksId">Marks Record ID</label>
-          <input id="marksId" type="text" placeholder="Leave blank for new entry">
+      <section class="dashboard-panel" id="semester-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Semester Management</h2>
+            <p class="subtitle">Add semester numbers and names.</p>
+          </div>
+          <form class="stack-form" id="semesterForm">
+            <label for="semNumber">Semester Number</label>
+            <input id="semNumber" type="number" min="1" max="8" placeholder="4" required>
 
-          <label for="marksRollNo">Student Roll No</label>
-          <input id="marksRollNo" type="text" placeholder="STU101" required>
+            <label for="semName">Semester Name</label>
+            <input id="semName" type="text" placeholder="Semester 4" required>
 
-          <label for="marksCourse">Course</label>
-          <select id="marksCourse" required></select>
-
-          <label for="marksFaculty">Faculty</label>
-          <select id="marksFaculty" required></select>
-
-          <label for="marksObtained">Marks Obtained</label>
-          <input id="marksObtained" type="number" min="0" step="0.01" placeholder="88" required>
-
-          <button class="login-button" type="submit">Save Marks</button>
-        </form>
-      </section>
+            <button class="login-button" type="submit">Add Semester</button>
+          </form>
+        </section>
       </section>
 
-      <section class="dashboard-grid two-column">
-        <section class="card" id="result-generation">
-        <div class="panel-header">
-          <h2>Generate Semester Result</h2>
-          <p class="subtitle">Run GPA and result generation procedure.</p>
-        </div>
-        <form class="stack-form" id="resultForm">
-          <label for="resultRollNo">Student Roll No</label>
-          <input id="resultRollNo" type="text" placeholder="STU101" required>
+      <section class="dashboard-panel" id="course-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Course Management</h2>
+            <p class="subtitle">Add course, credits, semester, and max marks.</p>
+          </div>
+          <form class="stack-form" id="courseForm">
+            <label for="courseCode">Course Code</label>
+            <input id="courseCode" type="text" placeholder="CSE401" required>
 
-          <label for="resultSemester">Semester</label>
-          <select id="resultSemester" required></select>
+            <label for="courseName">Course Name</label>
+            <input id="courseName" type="text" placeholder="Database Management Systems" required>
 
-          <button class="login-button" type="submit">Generate Result</button>
-        </form>
+            <label for="courseCredits">Credits</label>
+            <input id="courseCredits" type="number" min="1" placeholder="4" required>
+
+            <label for="courseSemester">Semester</label>
+            <select id="courseSemester" required></select>
+
+            <label for="courseMaxMarks">Max Marks</label>
+            <input id="courseMaxMarks" type="number" min="1" value="100" required>
+
+            <button class="login-button" type="submit">Add Course</button>
+          </form>
+        </section>
       </section>
 
-      <section class="card" id="delete-student">
-        <div class="panel-header">
-          <h2>Delete Student</h2>
-          <p class="subtitle">Deletion is blocked automatically if marks exist.</p>
-        </div>
-        <form class="stack-form" id="deleteStudentForm">
-          <label for="deleteStudentId">Student Record ID</label>
-          <input id="deleteStudentId" type="number" placeholder="Enter student record ID" required>
+      <section class="dashboard-panel" id="student-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Student Management</h2>
+            <p class="subtitle">Add, update, delete, and search students.</p>
+          </div>
+          <form class="stack-form" id="studentForm">
+            <label for="studentId">Student ID</label>
+            <input id="studentId" type="hidden">
 
-          <button class="login-button danger-button" type="submit">Delete Student</button>
-        </form>
-      </section>
-      </section>
+            <label for="studentRollNo">Roll No</label>
+            <input id="studentRollNo" type="text" placeholder="STU201" required>
 
-      <section class="table-grid two-column">
-        <section class="card" id="students-table">
-        <div class="panel-header">
-          <h2>Students</h2>
-          <p class="subtitle">Search result list.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Roll No</th>
-                <th>Name</th>
-                <th>Department</th>
-                <th>Semester</th>
-                <th>Faculty</th>
-              </tr>
-            </thead>
-            <tbody id="studentsTableBody"></tbody>
-          </table>
-        </div>
-      </section>
+            <label for="studentUniversityRollNo">University Roll No</label>
+            <input id="studentUniversityRollNo" type="text" placeholder="UNI2024CSE201" required>
 
-      <section class="card" id="faculty-table">
-        <div class="panel-header">
-          <h2>Faculty</h2>
-          <p class="subtitle">Registered faculty list.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Designation</th>
-                <th>Department</th>
-              </tr>
-            </thead>
-            <tbody id="facultyTableBody"></tbody>
-          </table>
-        </div>
-      </section>
+            <label for="studentName">Student Name</label>
+            <input id="studentName" type="text" placeholder="Student full name" required>
 
-      <section class="card" id="courses-table">
-        <div class="panel-header">
-          <h2>Courses</h2>
-          <p class="subtitle">Semester-wise course list.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Credits</th>
-                <th>Semester</th>
-                <th>Department</th>
-              </tr>
-            </thead>
-            <tbody id="coursesTableBody"></tbody>
-          </table>
-        </div>
+            <label for="studentFatherName">Father Name</label>
+            <input id="studentFatherName" type="text" placeholder="Father name" required>
+
+            <label for="studentMotherName">Mother Name</label>
+            <input id="studentMotherName" type="text" placeholder="Mother name" required>
+
+            <label for="studentGender">Gender</label>
+            <select id="studentGender" required>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+
+            <label for="studentDob">Date of Birth</label>
+            <input id="studentDob" type="date" required>
+
+            <label for="studentPhone">Phone No</label>
+            <input id="studentPhone" type="text" placeholder="9876543210" required>
+
+            <label for="studentParentPhone">Parent Phone</label>
+            <input id="studentParentPhone" type="text" placeholder="9876500010" required>
+
+            <label for="studentEmail">Email</label>
+            <input id="studentEmail" type="email" placeholder="student@college.edu" required>
+
+            <label for="studentAddress">Address</label>
+            <input id="studentAddress" type="text" placeholder="Address" required>
+
+            <label for="studentBatch">Batch</label>
+            <input id="studentBatch" type="text" placeholder="2023-2027" required>
+
+            <label for="studentClassBatch">Class Batch</label>
+            <input id="studentClassBatch" type="text" placeholder="2C34" required>
+
+            <label for="studentDepartment">Department</label>
+            <select id="studentDepartment" required></select>
+
+            <label for="studentSemester">Semester</label>
+            <select id="studentSemester" required></select>
+
+            <label for="studentPassword">Password</label>
+            <input id="studentPassword" type="password" placeholder="Set password for new student">
+
+            <div class="button-row">
+              <button class="login-button" type="submit">Save Student</button>
+              <button class="secondary-button" id="studentResetButton" type="button">Clear</button>
+            </div>
+          </form>
+        </section>
       </section>
 
-      <section class="card" id="department-course-table">
-        <div class="panel-header">
-          <h2>Department-Course Map</h2>
-          <p class="subtitle">Many-to-many relationship view.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Department</th>
-                <th>Course Code</th>
-                <th>Course Name</th>
-              </tr>
-            </thead>
-            <tbody id="departmentCoursesTableBody"></tbody>
-          </table>
-        </div>
+      <section class="dashboard-panel" id="faculty-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Faculty Management</h2>
+            <p class="subtitle">Add faculty and assign to department.</p>
+          </div>
+          <form class="stack-form" id="facultyForm">
+            <label for="facultyId">Faculty ID</label>
+            <input id="facultyId" type="hidden">
+
+            <label for="facultyEmpId">Employee ID</label>
+            <input id="facultyEmpId" type="text" placeholder="EMP2001" required>
+
+            <label for="facultyCode">Faculty Code</label>
+            <input id="facultyCode" type="text" placeholder="FAC301" required>
+
+            <label for="facultyName">Faculty Name</label>
+            <input id="facultyName" type="text" placeholder="Faculty full name" required>
+
+            <label for="facultyGender">Gender</label>
+            <select id="facultyGender" required>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+
+            <label for="facultyDob">Date of Birth</label>
+            <input id="facultyDob" type="date" required>
+
+            <label for="facultyQualification">Qualification</label>
+            <input id="facultyQualification" type="text" placeholder="M.Tech / PhD" required>
+
+            <label for="facultySpecialization">Specialization</label>
+            <input id="facultySpecialization" type="text" placeholder="Database Systems" required>
+
+            <label for="facultyDesignation">Designation</label>
+            <select id="facultyDesignation" required>
+              <option value="Professor">Professor</option>
+              <option value="Associate Professor">Associate Professor</option>
+              <option value="Assistant Professor">Assistant Professor</option>
+              <option value="Lecturer">Lecturer</option>
+            </select>
+
+            <label for="facultyPhone">Phone No</label>
+            <input id="facultyPhone" type="text" placeholder="9876543201" required>
+
+            <label for="facultyEmail">Email</label>
+            <input id="facultyEmail" type="email" placeholder="faculty@college.edu" required>
+
+            <label for="facultyDepartment">Department</label>
+            <select id="facultyDepartment" required></select>
+
+            <label for="facultyPassword">Password</label>
+            <input id="facultyPassword" type="password" placeholder="Set password for new faculty">
+
+            <div class="button-row">
+              <button class="login-button" type="submit">Save Faculty</button>
+              <button class="secondary-button" id="facultyResetButton" type="button">Clear</button>
+            </div>
+          </form>
+        </section>
       </section>
 
-      <section class="card" id="faculty-course-table">
-        <div class="panel-header">
-          <h2>Faculty-Course Assignments</h2>
-          <p class="subtitle">Teaching allocation list.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Faculty</th>
-                <th>Course</th>
-                <th>Department</th>
-              </tr>
-            </thead>
-            <tbody id="facultyCoursesTableBody"></tbody>
-          </table>
-        </div>
+      <section class="dashboard-panel" id="department-course-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Department-Course Mapping</h2>
+            <p class="subtitle">Assign courses to departments.</p>
+          </div>
+          <form class="stack-form" id="departmentCourseForm">
+            <label for="mapDepartment">Department</label>
+            <select id="mapDepartment" required></select>
+
+            <label for="mapCourse">Course</label>
+            <select id="mapCourse" required></select>
+
+            <button class="login-button" type="submit">Assign Course</button>
+          </form>
+        </section>
       </section>
 
-      <section class="card" id="marks-table">
-        <div class="panel-header">
-          <h2>Marks and Grades</h2>
-          <p class="subtitle">Marks, grade, and grade point.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Roll No</th>
-                <th>Course</th>
-                <th>Faculty</th>
-                <th>Marks</th>
-                <th>Grade</th>
-              </tr>
-            </thead>
-            <tbody id="marksTableBody"></tbody>
-          </table>
-        </div>
+      <section class="dashboard-panel" id="faculty-course-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Faculty-Course Assignment</h2>
+            <p class="subtitle">Assign faculty to course.</p>
+          </div>
+          <form class="stack-form" id="facultyCourseForm">
+            <label for="assignFaculty">Faculty</label>
+            <select id="assignFaculty" required></select>
+
+            <label for="assignCourse">Course</label>
+            <select id="assignCourse" required></select>
+
+            <label for="assignDepartment">Department</label>
+            <select id="assignDepartment" required></select>
+
+            <button class="login-button" type="submit">Assign Faculty</button>
+          </form>
+        </section>
       </section>
 
-      <section class="card" id="results-table">
-        <div class="panel-header">
-          <h2>Semester Results</h2>
-          <p class="subtitle">Stored GPA and pass/fail status.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Roll No</th>
-                <th>Semester</th>
-                <th>GPA</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="resultsTableBody"></tbody>
-          </table>
-        </div>
+      <section class="dashboard-panel" id="marks-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Marks Entry</h2>
+            <p class="subtitle">Enter or update marks with validation.</p>
+          </div>
+          <form class="stack-form" id="marksForm">
+            <label for="marksId">Marks Record ID</label>
+            <input id="marksId" type="text" placeholder="Leave blank for new entry">
+
+            <label for="marksRollNo">Student Roll No</label>
+            <input id="marksRollNo" type="text" placeholder="STU101" required>
+
+            <label for="marksCourse">Course</label>
+            <select id="marksCourse" required></select>
+
+            <label for="marksFaculty">Faculty</label>
+            <select id="marksFaculty" required></select>
+
+            <label for="marksObtained">Marks Obtained</label>
+            <input id="marksObtained" type="number" min="0" step="0.01" placeholder="88" required>
+
+            <button class="login-button" type="submit">Save Marks</button>
+          </form>
+        </section>
       </section>
 
-      <section class="card" id="activity-log">
-        <div class="panel-header">
-          <h2>Activity Log</h2>
-          <p class="subtitle">Faculty mark edit tracking.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Faculty</th>
-                <th>Student</th>
-                <th>Course</th>
-                <th>Old</th>
-                <th>New</th>
-              </tr>
-            </thead>
-            <tbody id="activityTableBody"></tbody>
-          </table>
-        </div>
+      <section class="dashboard-panel" id="result-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Generate Semester Result</h2>
+            <p class="subtitle">Run GPA and result generation procedure.</p>
+          </div>
+          <form class="stack-form" id="resultForm">
+            <label for="resultRollNo">Student Roll No</label>
+            <input id="resultRollNo" type="text" placeholder="STU101" required>
+
+            <label for="resultSemester">Semester</label>
+            <select id="resultSemester" required></select>
+
+            <button class="login-button" type="submit">Generate Result</button>
+          </form>
+        </section>
+
+        <section class="card panel-spacing">
+          <div class="panel-header">
+            <h2>Delete Student</h2>
+            <p class="subtitle">Deletion is blocked automatically if marks exist.</p>
+          </div>
+          <form class="stack-form" id="deleteStudentForm">
+            <label for="deleteStudentId">Student Record ID</label>
+            <input id="deleteStudentId" type="number" placeholder="Enter student record ID" required>
+
+            <button class="login-button danger-button" type="submit">Delete Student</button>
+          </form>
+        </section>
       </section>
+
+      <section class="dashboard-panel" id="students-list-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Students</h2>
+            <p class="subtitle">Search result list.</p>
+          </div>
+          <section class="toolbar inline-toolbar">
+            <div class="toolbar-group">
+              <label for="studentSearch">Search Students</label>
+              <input id="studentSearch" type="text" placeholder="Search by roll no, name, or department">
+            </div>
+            <div class="toolbar-group">
+              <label for="departmentFilter">Department Filter</label>
+              <select id="departmentFilter">
+                <option value="">All Departments</option>
+              </select>
+            </div>
+            <div class="toolbar-actions">
+              <button class="secondary-button" id="searchButton" type="button">Search</button>
+              <button class="secondary-button" id="refreshButton" type="button">Refresh</button>
+            </div>
+          </section>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Roll No</th>
+                  <th>Name</th>
+                  <th>Department</th>
+                  <th>Semester</th>
+                  <th>Faculty</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="dashboard-panel" id="faculty-list-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Faculty</h2>
+            <p class="subtitle">Registered faculty list.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Designation</th>
+                  <th>Department</th>
+                </tr>
+              </thead>
+              <tbody id="facultyTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="dashboard-panel" id="courses-list-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Courses</h2>
+            <p class="subtitle">Semester-wise course list.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Credits</th>
+                  <th>Semester</th>
+                  <th>Department</th>
+                </tr>
+              </thead>
+              <tbody id="coursesTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="dashboard-panel" id="department-course-list-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Department-Course Map</h2>
+            <p class="subtitle">Many-to-many relationship view.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Department</th>
+                  <th>Course Code</th>
+                  <th>Course Name</th>
+                </tr>
+              </thead>
+              <tbody id="departmentCoursesTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="dashboard-panel" id="faculty-course-list-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Faculty-Course Assignments</h2>
+            <p class="subtitle">Teaching allocation list.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Faculty</th>
+                  <th>Course</th>
+                  <th>Department</th>
+                </tr>
+              </thead>
+              <tbody id="facultyCoursesTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="dashboard-panel" id="marks-list-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Marks and Grades</h2>
+            <p class="subtitle">Marks, grade, and grade point.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Roll No</th>
+                  <th>Course</th>
+                  <th>Faculty</th>
+                  <th>Marks</th>
+                  <th>Grade</th>
+                </tr>
+              </thead>
+              <tbody id="marksTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="dashboard-panel" id="results-list-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Semester Results</h2>
+            <p class="subtitle">Stored GPA and pass/fail status.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Roll No</th>
+                  <th>Semester</th>
+                  <th>GPA</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="dashboard-panel" id="activity-log-panel">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Activity Log</h2>
+            <p class="subtitle">Faculty mark edit tracking.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Faculty</th>
+                  <th>Student</th>
+                  <th>Course</th>
+                  <th>Old</th>
+                  <th>New</th>
+                </tr>
+              </thead>
+              <tbody id="activityTableBody"></tbody>
+            </table>
+          </div>
+        </section>
       </section>
     </section>
   </main>
