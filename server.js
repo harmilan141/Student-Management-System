@@ -671,6 +671,57 @@
     }
   });
 
+  app.post("/api/cgpa", async (req, res) => {
+    const { facultyCode, rollNo, cgpa, remarks } = req.body;
+
+    if (!facultyCode || !rollNo || cgpa === undefined || cgpa === null) {
+      return res.status(400).json({ ok: false, message: "Faculty code, roll number, and CGPA are required." });
+    }
+
+    const numericCgpa = Number(cgpa);
+    if (Number.isNaN(numericCgpa) || numericCgpa < 0 || numericCgpa > 10) {
+      return res.status(400).json({ ok: false, message: "CGPA must be between 0 and 10." });
+    }
+
+    try {
+      const [facultyRows] = await pool.query(
+        "SELECT faculty_id FROM faculty WHERE faculty_code = ? LIMIT 1",
+        [facultyCode.trim()]
+      );
+      if (facultyRows.length === 0) {
+        return res.status(404).json({ ok: false, message: "Faculty not found." });
+      }
+
+      const [studentRows] = await pool.query(
+        "SELECT student_id FROM students WHERE roll_no = ? LIMIT 1",
+        [rollNo.trim()]
+      );
+      if (studentRows.length === 0) {
+        return res.status(404).json({ ok: false, message: "Student not found." });
+      }
+
+      await pool.query(
+        `INSERT INTO student_cgpa (student_id, cgpa, remarks, updated_by_faculty_id)
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+          cgpa = VALUES(cgpa),
+          remarks = VALUES(remarks),
+          updated_by_faculty_id = VALUES(updated_by_faculty_id),
+          updated_at = CURRENT_TIMESTAMP`,
+        [
+          studentRows[0].student_id,
+          numericCgpa,
+          remarks ? remarks.trim() : null,
+          facultyRows[0].faculty_id
+        ]
+      );
+
+      res.json({ ok: true, message: "CGPA saved successfully." });
+    } catch (error) {
+      res.status(500).json({ ok: false, message: "Unable to save CGPA.", error: error.message });
+    }
+  });
+
   app.get("/api/student/:rollNo", async (req, res) => {
     try {
       const [studentRows] = await pool.query(
@@ -708,7 +759,21 @@
         [studentRows[0].student_id]
       );
 
-      res.json({ ok: true, student: studentRows[0], marks: marksRows, results: resultRows });
+      const [cgpaRows] = await pool.query(
+        `SELECT cgpa, remarks, updated_at
+        FROM student_cgpa
+        WHERE student_id = ?
+        LIMIT 1`,
+        [studentRows[0].student_id]
+      );
+
+      res.json({
+        ok: true,
+        student: studentRows[0],
+        marks: marksRows,
+        results: resultRows,
+        cgpa: cgpaRows[0] || null
+      });
     } catch (error) {
       res.status(500).json({ ok: false, message: "Unable to load student profile.", error: error.message });
     }
@@ -752,7 +817,31 @@
         [facultyRows[0].faculty_id]
       );
 
-      res.json({ ok: true, faculty: facultyRows[0], courses: coursesRows, activities: activityRows });
+      const [cgpaRows] = await pool.query(
+        `SELECT s.roll_no, s.student_name, d.dept_name, sc.cgpa, sc.remarks, sc.updated_at
+        FROM student_cgpa sc
+        INNER JOIN students s ON s.student_id = sc.student_id
+        INNER JOIN departments d ON d.dept_id = s.dept_id
+        WHERE sc.updated_by_faculty_id = ?
+        ORDER BY sc.updated_at DESC`,
+        [facultyRows[0].faculty_id]
+      );
+
+      const [studentOptions] = await pool.query(
+        `SELECT s.roll_no, s.student_name, d.dept_name
+        FROM students s
+        INNER JOIN departments d ON d.dept_id = s.dept_id
+        ORDER BY s.student_name`
+      );
+
+      res.json({
+        ok: true,
+        faculty: facultyRows[0],
+        courses: coursesRows,
+        activities: activityRows,
+        cgpaRecords: cgpaRows,
+        students: studentOptions
+      });
     } catch (error) {
       res.status(500).json({ ok: false, message: "Unable to load faculty profile.", error: error.message });
     }

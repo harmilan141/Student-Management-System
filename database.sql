@@ -11,6 +11,7 @@ DROP PROCEDURE IF EXISTS sp_generate_semester_result;
 DROP PROCEDURE IF EXISTS sp_delete_student;
 
 DROP TABLE IF EXISTS activity_log;
+DROP TABLE IF EXISTS student_cgpa;
 DROP TABLE IF EXISTS semester_results;
 DROP TABLE IF EXISTS marks;
 DROP TABLE IF EXISTS faculty_course_assignment;
@@ -152,6 +153,18 @@ CREATE TABLE semester_results (
   CONSTRAINT fk_result_student FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
   CONSTRAINT fk_result_semester FOREIGN KEY (sem_id) REFERENCES semesters(sem_id) ON DELETE CASCADE,
   CONSTRAINT uq_student_semester_result UNIQUE (student_id, sem_id)
+);
+
+CREATE TABLE student_cgpa (
+  cgpa_id INT PRIMARY KEY AUTO_INCREMENT,
+  student_id INT NOT NULL UNIQUE,
+  cgpa DECIMAL(4,2) NOT NULL,
+  remarks VARCHAR(255),
+  updated_by_faculty_id INT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_cgpa_student FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+  CONSTRAINT fk_cgpa_faculty FOREIGN KEY (updated_by_faculty_id) REFERENCES faculty(faculty_id) ON DELETE SET NULL,
+  CONSTRAINT chk_cgpa_range CHECK (cgpa >= 0 AND cgpa <= 10)
 );
 
 CREATE TABLE activity_log (

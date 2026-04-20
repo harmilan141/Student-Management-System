@@ -48,6 +48,35 @@ function renderSimpleTable(title, headers, rows) {
     </section>`;
 }
 
+function renderCgpaForm(students) {
+  const options = students
+    .map((student) => `<option value="${student.roll_no}">${student.roll_no} - ${student.student_name}</option>`)
+    .join("");
+
+  return `
+    <section class="card">
+      <div class="panel-header">
+        <h2>Student CGPA Management</h2>
+        <p class="subtitle">Insert or edit cumulative GPA for a student.</p>
+      </div>
+      <form class="stack-form" id="facultyCgpaForm">
+        <label for="cgpaStudentRoll">Student</label>
+        <select id="cgpaStudentRoll" required>
+          <option value="">Select student</option>
+          ${options}
+        </select>
+
+        <label for="cgpaValue">CGPA</label>
+        <input id="cgpaValue" type="number" min="0" max="10" step="0.01" placeholder="8.45" required>
+
+        <label for="cgpaRemarks">Remarks</label>
+        <input id="cgpaRemarks" type="text" placeholder="Consistent performance">
+
+        <button class="login-button" type="submit">Save CGPA</button>
+      </form>
+    </section>`;
+}
+
 async function loadUserProfile() {
   if (!user) {
     return;
@@ -78,7 +107,9 @@ async function loadUserProfile() {
         renderDetail("Department", data.student.dept_name) +
         renderDetail("Semester", data.student.sem_name) +
         renderDetail("Phone", data.student.phone_no) +
-        renderDetail("Batch", data.student.batch);
+        renderDetail("Batch", data.student.batch) +
+        renderDetail("Current CGPA", data.cgpa ? data.cgpa.cgpa : "Not updated yet") +
+        renderDetail("CGPA Remarks", data.cgpa?.remarks || "No remarks");
 
       content.innerHTML =
         renderSimpleTable(
@@ -109,6 +140,7 @@ async function loadUserProfile() {
         renderDetail("Specialization", data.faculty.specialization);
 
       content.innerHTML =
+        renderCgpaForm(data.students || []) +
         renderSimpleTable(
           "Assigned Courses",
           ["Course", "Credits", "Semester", "Department"],
@@ -130,7 +162,49 @@ async function loadUserProfile() {
             item.new_marks ?? "-",
             new Date(item.action_time).toLocaleString()
           ])
+        ) +
+        renderSimpleTable(
+          "CGPA Records Updated By You",
+          ["Roll No", "Student", "Department", "CGPA", "Remarks", "Updated At"],
+          (data.cgpaRecords || []).map((item) => [
+            item.roll_no,
+            item.student_name,
+            item.dept_name,
+            item.cgpa,
+            item.remarks || "-",
+            new Date(item.updated_at).toLocaleString()
+          ])
         );
+
+      const cgpaForm = document.getElementById("facultyCgpaForm");
+      if (cgpaForm) {
+        cgpaForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          try {
+            const cgpaResponse = await fetch("/api/cgpa", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                facultyCode: data.faculty.faculty_code,
+                rollNo: document.getElementById("cgpaStudentRoll").value,
+                cgpa: document.getElementById("cgpaValue").value,
+                remarks: document.getElementById("cgpaRemarks").value
+              })
+            });
+
+            const cgpaData = await cgpaResponse.json();
+            if (!cgpaResponse.ok) {
+              throw new Error(cgpaData.message || "Unable to save CGPA.");
+            }
+
+            setUserStatus("CGPA saved successfully.", "success");
+            loadUserProfile();
+          } catch (error) {
+            setUserStatus(error.message || "Unable to save CGPA.", "error");
+          }
+        });
+      }
     }
   } catch (error) {
     setUserStatus("Server error while loading profile.", "error");
