@@ -759,13 +759,20 @@
         [studentRows[0].student_id]
       );
 
-      const [cgpaRows] = await pool.query(
-        `SELECT cgpa, remarks, updated_at
-        FROM student_cgpa
-        WHERE student_id = ?
-        LIMIT 1`,
-        [studentRows[0].student_id]
-      );
+      let cgpaRows = [];
+      try {
+        [cgpaRows] = await pool.query(
+          `SELECT cgpa, remarks, updated_at
+          FROM student_cgpa
+          WHERE student_id = ?
+          LIMIT 1`,
+          [studentRows[0].student_id]
+        );
+      } catch (cgpaError) {
+        if (cgpaError.code !== "ER_NO_SUCH_TABLE") {
+          throw cgpaError;
+        }
+      }
 
       res.json({
         ok: true,
@@ -817,15 +824,22 @@
         [facultyRows[0].faculty_id]
       );
 
-      const [cgpaRows] = await pool.query(
-        `SELECT s.roll_no, s.student_name, d.dept_name, sc.cgpa, sc.remarks, sc.updated_at
-        FROM student_cgpa sc
-        INNER JOIN students s ON s.student_id = sc.student_id
-        INNER JOIN departments d ON d.dept_id = s.dept_id
-        WHERE sc.updated_by_faculty_id = ?
-        ORDER BY sc.updated_at DESC`,
-        [facultyRows[0].faculty_id]
-      );
+      let cgpaRows = [];
+      try {
+        [cgpaRows] = await pool.query(
+          `SELECT s.roll_no, s.student_name, d.dept_name, sc.cgpa, sc.remarks, sc.updated_at
+          FROM student_cgpa sc
+          INNER JOIN students s ON s.student_id = sc.student_id
+          INNER JOIN departments d ON d.dept_id = s.dept_id
+          WHERE sc.updated_by_faculty_id = ?
+          ORDER BY sc.updated_at DESC`,
+          [facultyRows[0].faculty_id]
+        );
+      } catch (cgpaError) {
+        if (cgpaError.code !== "ER_NO_SUCH_TABLE") {
+          throw cgpaError;
+        }
+      }
 
       const [studentOptions] = await pool.query(
         `SELECT s.roll_no, s.student_name, d.dept_name
