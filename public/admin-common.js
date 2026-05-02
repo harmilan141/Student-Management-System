@@ -1,12 +1,23 @@
 const savedUser = localStorage.getItem("smsUser");
 
 if (!savedUser) {
-  window.location.href = "index.html";
+  window.location.href = "login.html";
+  throw new Error("No user session");
 }
 
-const admin = savedUser ? JSON.parse(savedUser) : null;
+let admin = null;
+
+try {
+  admin = JSON.parse(savedUser);
+} catch (e) {
+  localStorage.removeItem("smsUser");
+  window.location.href = "login.html";
+  throw new Error("Invalid user data");
+}
+
 if (admin && admin.role !== "admin") {
   window.location.href = "user-dashboard.html";
+  throw new Error("Unauthorized access");
 }
 
 const dashboardName = document.getElementById("dashboardName");
@@ -25,25 +36,22 @@ if (dashboardEmail) {
 if (logoutButton) {
   logoutButton.addEventListener("click", () => {
     localStorage.removeItem("smsUser");
-    window.location.href = "index.html";
+    window.location.href = "login.html";
   });
 }
 
 const currentPage = document.body.dataset.page;
+
 document.querySelectorAll(".sidebar-link").forEach((link) => {
   link.classList.toggle("active", link.dataset.nav === currentPage);
 });
 
 function setStatus(message, type = "") {
-  if (!statusElement) {
-    return;
-  }
+  if (!statusElement) return;
 
   statusElement.textContent = message;
   statusElement.className = "status-message";
-  if (type) {
-    statusElement.classList.add(type);
-  }
+  if (type) statusElement.classList.add(type);
 }
 
 async function fetchJson(url, options = {}) {
@@ -54,11 +62,10 @@ async function fetchJson(url, options = {}) {
 
 function renderTableBody(bodyId, rows, columns, emptyMessage) {
   const body = document.getElementById(bodyId);
-  if (!body) {
-    return;
-  }
+  if (!body) return;
 
   body.innerHTML = "";
+
   if (!rows.length) {
     body.innerHTML = `<tr><td colspan="${columns.length}">${emptyMessage}</td></tr>`;
     return;
@@ -66,19 +73,20 @@ function renderTableBody(bodyId, rows, columns, emptyMessage) {
 
   rows.forEach((row) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = columns.map((column) => `<td>${row[column] ?? "-"}</td>`).join("");
+    tr.innerHTML = columns
+      .map((column) => `<td>${row[column] ?? "-"}</td>`)
+      .join("");
     body.appendChild(tr);
   });
 }
 
 function fillSelect(selectId, items, valueKey, labelBuilder, placeholder) {
   const select = document.getElementById(selectId);
-  if (!select) {
-    return;
-  }
+  if (!select) return;
 
   const previousValue = select.value;
   select.innerHTML = "";
+
   if (placeholder !== undefined) {
     const option = document.createElement("option");
     option.value = "";

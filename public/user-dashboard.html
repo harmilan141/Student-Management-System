@@ -3,42 +3,99 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Dashboard</title>
-  <link rel="stylesheet" href="style.css?v=20260420a">
+  <title>User Dashboard · Student Management System</title>
+
+  <link rel="stylesheet" href="style.css?v=20260501a">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
+
 <body>
+
   <div class="top-bar"></div>
-  <main class="dashboard-shell">
-    <section class="dashboard-header card">
-      <div>
-        <p class="institution-type" id="userRoleLabel">Portal User</p>
-        <h1 id="userDashboardHeading">Dashboard</h1>
-        <p class="institution-copy" id="userDashboardIntro">
-          Your account details are shown below.
-        </p>
-      </div>
-      <div class="admin-summary">
-        <strong id="userName">User</strong>
-        <span id="userEmail">-</span>
-        <button class="secondary-button" id="userLogoutButton" type="button">Logout</button>
-      </div>
-    </section>
 
-    <p class="status-message" id="userStatus" aria-live="polite"></p>
+  <main class="dashboard-layout">
 
-    <section class="table-grid single-column">
+    <!-- SIDEBAR -->
+    <aside class="dashboard-sidebar">
+      <div class="sidebar-brand">
+        <span class="logo">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </span>
+        <div>
+          <p id="userRoleLabel">Portal</p>
+          <h2>Student MS</h2>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="sidebar-link active" href="user-dashboard.html">
+          <i class="fa-solid fa-chart-pie"></i> My Dashboard
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <strong>Signed in</strong>
+        <span id="sidebarUserName">—</span>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <section class="dashboard-shell">
+
+      <section class="dashboard-header card">
+        <div>
+          <p class="institution-type">User Panel</p>
+          <h1 id="userDashboardHeading">Dashboard</h1>
+          <p class="institution-copy" id="userDashboardIntro">
+            Your account details are shown below.
+          </p>
+        </div>
+
+        <div class="admin-summary">
+          <strong id="userName">User</strong>
+          <span id="userEmail">-</span>
+
+          <button class="secondary-button" id="userLogoutButton" type="button">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </section>
+
+      <p class="status-message" id="userStatus"></p>
+
+      <!-- PROFILE -->
       <section class="card">
         <div class="panel-header">
-          <h2>Profile Information</h2>
+          <h2>
+            <i class="fa-solid fa-id-card" style="color:var(--mint-600);margin-right:8px;"></i>
+            Profile Information
+          </h2>
           <p class="subtitle">Account details provided by the system.</p>
         </div>
+
         <div class="profile-grid details-grid" id="userDetails"></div>
       </section>
+
+      <!-- CONTENT -->
+      <section class="table-grid two-column" id="userContent"></section>
+
     </section>
 
-    <section class="table-grid two-column" id="userContent"></section>
   </main>
 
-  <script src="user-dashboard.js?v=20260420a"></script>
+  <script src="user-dashboard.js?v=20260501a"></script>
+
+  <!-- SAFE SIDEBAR NAME SYNC -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const name = document.getElementById("userName");
+      const sidebar = document.getElementById("sidebarUserName");
+
+      if (name && sidebar) {
+        sidebar.textContent = name.textContent;
+      }
+    });
+  </script>
+
 </body>
 </html>

@@ -4,74 +4,446 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Management System</title>
-  <link rel="stylesheet" href="style.css?v=20260419d">
+
+  <link rel="stylesheet" href="style.css?v=20260501c">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --g1: #0d4a35;
+      --g2: #10b981;
+      --g3: #ecfdf5;
+      --gold: #f59e0b;
+    }
+    body { font-family: 'Outfit', system-ui, sans-serif; background: #f5f9f7; margin: 0; }
+
+    /* TOP BAR */
+    .idx-topbar {
+      height: 3px;
+      background: linear-gradient(90deg,#0d4a35,#10b981,#34d399,#0d4a35);
+      background-size: 200% 100%;
+      animation: shimmer 3s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* NAV */
+    .idx-nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5vw; height: 64px;
+      background: rgba(245,249,247,.92);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(16,185,129,.12);
+    }
+    .idx-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.05rem;
+      color: var(--g1); text-decoration: none;
+    }
+    .idx-brand-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg,var(--g1),var(--g2));
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: .9rem;
+    }
+    .idx-nav-links { display: flex; gap: 32px; }
+    .idx-nav-links a { font-size: .875rem; font-weight: 500; color: #3d5249; text-decoration: none; transition: color .2s; }
+    .idx-nav-links a:hover { color: var(--g2); }
+    .idx-nav-cta {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 20px; border-radius: 999px;
+      background: var(--g1); color: #fff;
+      font-weight: 600; font-size: .875rem; text-decoration: none;
+      transition: background .2s, transform .2s, box-shadow .2s;
+    }
+    .idx-nav-cta:hover { background: var(--g2); color: #fff; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(16,185,129,.3); }
+    @media (max-width: 720px) { .idx-nav-links { display: none; } }
+
+    /* HERO */
+    .idx-hero-wrap { max-width: 1200px; margin: 0 auto; padding: 80px 5vw 60px; display: grid; grid-template-columns: 1fr 400px; gap: 60px; align-items: center; }
+    @media (max-width: 1000px) { .idx-hero-wrap { grid-template-columns: 1fr; } .idx-hero-card { display: none; } }
+
+    .idx-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--g2); background: rgba(16,185,129,.08);
+      padding: 5px 14px; border-radius: 999px; border: 1px solid rgba(16,185,129,.2); margin-bottom: 20px;
+    }
+    .idx-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--g2); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+
+    .idx-h1 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(2.4rem, 4.5vw, 3.7rem);
+      line-height: 1.08; font-weight: 400;
+      color: var(--g1); margin: 0 0 20px;
+    }
+    .idx-h1 em { font-style: italic; color: var(--g2); }
+
+    .idx-lead { font-size: 1.02rem; color: #4a5c55; line-height: 1.65; max-width: 520px; margin-bottom: 32px; }
+
+    .idx-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }
+    .idx-btn-p {
+      display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; border-radius: 999px;
+      background: linear-gradient(135deg,var(--g1),var(--g2)); color: #fff;
+      font-weight: 600; font-size: .92rem; text-decoration: none;
+      box-shadow: 0 6px 20px rgba(13,74,53,.25); transition: transform .2s, box-shadow .2s;
+    }
+    .idx-btn-p:hover { transform: translateY(-2px); color: #fff; box-shadow: 0 12px 30px rgba(13,74,53,.35); }
+    .idx-btn-o {
+      display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; border-radius: 999px;
+      border: 1.5px solid rgba(13,74,53,.25); color: var(--g1);
+      font-weight: 600; font-size: .92rem; text-decoration: none; background: transparent;
+      transition: border-color .2s, background .2s, transform .2s;
+    }
+    .idx-btn-o:hover { border-color: var(--g2); color: var(--g2); background: rgba(16,185,129,.05); transform: translateY(-2px); }
+
+    .idx-stats { display: flex; gap: 30px; flex-wrap: wrap; padding-top: 32px; border-top: 1px solid rgba(13,74,53,.1); }
+    .idx-stats-item strong { display: block; font-family: 'Outfit', sans-serif; font-size: 1.65rem; font-weight: 800; color: var(--g1); line-height: 1; }
+    .idx-stats-item span { font-size: .75rem; color: #7a9088; letter-spacing: .04em; text-transform: uppercase; font-weight: 500; }
+
+    /* HERO CARD */
+    .idx-hero-card {
+      background: #fff; border: 1px solid rgba(16,185,129,.15); border-radius: 24px;
+      padding: 26px; box-shadow: 0 24px 60px rgba(13,74,53,.1); position: relative; overflow: hidden;
+    }
+    .idx-hero-card::before { content:''; position:absolute; top:0;left:0;right:0;height:4px; background:linear-gradient(90deg,var(--g1),var(--g2),#34d399); }
+    .idx-hero-card h4 { font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #7a9088; margin: 0 0 18px; }
+    .idx-snap { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 18px; }
+    .idx-snap-item { background: var(--g3); border-radius: 12px; padding: 14px 10px; text-align: center; }
+    .idx-snap-item strong { display: block; font-family: 'Outfit', sans-serif; font-size: 1.45rem; font-weight: 800; color: var(--g1); }
+    .idx-snap-item span { font-size: .72rem; color: #7a9088; font-weight: 500; }
+    .idx-pills { display: flex; flex-direction: column; gap: 7px; }
+    .idx-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 11px;
+      background: var(--g3); font-size: .82rem; font-weight: 500; color: var(--g1);
+    }
+    .idx-pill i {
+      width: 26px; height: 26px; border-radius: 7px;
+      background: linear-gradient(135deg,var(--g1),var(--g2));
+      color:#fff; display:flex; align-items:center; justify-content:center; font-size:.7rem; flex-shrink:0;
+    }
+    .idx-pill span { margin-left:auto; font-size:.7rem; color:#7a9088; }
+
+    /* BANNER */
+    .idx-banner { background: linear-gradient(135deg,var(--g1) 0%,#0a7a55 100%); padding: 56px 5vw; }
+    .idx-banner-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; text-align: center; }
+    @media (max-width: 720px) { .idx-banner-inner { grid-template-columns: repeat(2,1fr); } }
+    .idx-banner-item strong { display:block; font-family:'Outfit',sans-serif; font-size: 2.2rem; font-weight:800; color:#fff; line-height:1; }
+    .idx-banner-item span { font-size:.78rem; color:rgba(255,255,255,.6); font-weight:500; margin-top:5px; display:block; }
+
+    /* SECTION */
+    .idx-sec { max-width: 1200px; margin: 0 auto; padding: 80px 5vw; }
+    .idx-sec-label {
+      display: flex; align-items: center; gap: 12px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--g2); margin-bottom: 12px;
+    }
+    .idx-sec-label::before,.idx-sec-label::after { content:''; flex:1; height:1px; background:rgba(16,185,129,.25); }
+    .idx-sec-h { font-family:'DM Serif Display',Georgia,serif; font-size:clamp(1.8rem,3vw,2.4rem); font-weight:400; color:var(--g1); text-align:center; margin:0 auto 10px; }
+    .idx-sec-sub { text-align:center; color:#6a8070; font-size:.93rem; max-width:500px; margin:0 auto 48px; }
+
+    /* FEATURES */
+    .idx-feats { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+    @media (max-width:900px){.idx-feats{grid-template-columns:repeat(2,1fr);}}
+    @media (max-width:520px){.idx-feats{grid-template-columns:1fr;}}
+    .idx-feat {
+      background:#fff; border-radius:20px; padding:26px 22px;
+      border:1px solid rgba(16,185,129,.1);
+      transition:transform .25s,box-shadow .25s; position:relative; overflow:hidden;
+    }
+    .idx-feat::after {
+      content:''; position:absolute; bottom:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,var(--g1),var(--g2));
+      transform:scaleX(0); transform-origin:left; transition:transform .3s;
+    }
+    .idx-feat:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(13,74,53,.1); }
+    .idx-feat:hover::after { transform:scaleX(1); }
+    .idx-feat-ico {
+      width:46px; height:46px; border-radius:13px;
+      background:linear-gradient(135deg,rgba(13,74,53,.08),rgba(16,185,129,.12));
+      display:flex; align-items:center; justify-content:center;
+      color:var(--g2); font-size:1.1rem; margin-bottom:14px;
+    }
+    .idx-feat h3 { font-family:'Outfit',sans-serif; font-size:.92rem; font-weight:700; color:var(--g1); margin:0 0 7px; }
+    .idx-feat p { font-size:.82rem; color:#6a8070; margin:0; line-height:1.55; }
+
+    /* TEAM */
+    .idx-team-bg { background:#eef5f1; padding:80px 0; }
+    .idx-team-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; }
+    @media (max-width:860px){.idx-team-grid{grid-template-columns:1fr; max-width:360px; margin:0 auto;}}
+
+    .idx-card {
+      background:#fff; border:1px solid rgba(16,185,129,.12); border-radius:24px;
+      overflow:hidden; transition:transform .25s,box-shadow .25s;
+      display:flex; flex-direction:column;
+    }
+    .idx-card:hover { transform:translateY(-5px); box-shadow:0 20px 48px rgba(13,74,53,.12); }
+    .idx-card.lead { border-color:rgba(16,185,129,.4); }
+
+    .idx-card-top {
+      background:linear-gradient(135deg,#1a6048 0%,#0d8c61 100%);
+      padding:30px 22px 22px;
+      display:flex; flex-direction:column; align-items:center; gap:12px;
+      position:relative;
+    }
+    .idx-card.lead .idx-card-top { background:linear-gradient(135deg,#0d4a35 0%,#0a7a55 100%); }
+
+    .idx-card-badge {
+      position:absolute; top:14px; right:14px;
+      padding:3px 10px; border-radius:999px;
+      font-size:.62rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    }
+    .badge-lead { background:var(--gold); color:#7c3d00; }
+    .badge-fe   { background:rgba(255,255,255,.18); color:rgba(255,255,255,.9); }
+    .badge-be   { background:rgba(255,255,255,.18); color:rgba(255,255,255,.9); }
+
+    .idx-card-av {
+      width:70px; height:70px; border-radius:50%;
+      border:2.5px solid rgba(255,255,255,.3);
+      background:rgba(255,255,255,.14);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.55rem; color:#fff;
+    }
+    .idx-card.lead .idx-card-av { width:78px; height:78px; font-size:1.7rem; border-color:rgba(255,255,255,.45); }
+
+    .idx-card-name { font-family:'Outfit',sans-serif; font-size:1.1rem; font-weight:700; color:#fff; margin:0; text-align:center; }
+    .idx-card.lead .idx-card-name { font-size:1.2rem; }
+    .idx-card-role { font-size:.72rem; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:rgba(255,255,255,.68); margin:0; }
+
+    .idx-card-body { padding:18px 22px 22px; display:flex; flex-direction:column; gap:12px; flex:1; }
+
+    .idx-card-roll {
+      display:inline-flex; align-items:center; gap:6px;
+      font-family:'JetBrains Mono',monospace; font-size:.76rem;
+      color:var(--g2); background:rgba(16,185,129,.07);
+      padding:4px 10px; border-radius:6px; border:1px solid rgba(16,185,129,.15);
+      width:fit-content;
+    }
+
+    .idx-card-tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .idx-tag { padding:3px 9px; border-radius:999px; font-size:.7rem; font-weight:600; letter-spacing:.03em; }
+    .tg { background:rgba(16,185,129,.1); color:#047857; border:1px solid rgba(16,185,129,.2); }
+    .tb { background:rgba(59,130,246,.07); color:#1d4ed8; border:1px solid rgba(59,130,246,.18); }
+    .to { background:rgba(245,158,11,.1); color:#92400e; border:1px solid rgba(245,158,11,.22); }
+    .tp { background:rgba(139,92,246,.07); color:#6d28d9; border:1px solid rgba(139,92,246,.18); }
+
+    .idx-card-email {
+      display:flex; align-items:center; gap:7px;
+      font-size:.77rem; color:var(--g2); text-decoration:none;
+      padding:8px 12px; border-radius:10px;
+      background:rgba(16,185,129,.06); border:1px solid rgba(16,185,129,.12);
+      transition:background .2s; margin-top:auto;
+    }
+    .idx-card-email:hover { background:rgba(16,185,129,.12); color:var(--g2); }
+
+    /* FOOTER */
+    .idx-footer { background:var(--g1); padding:24px 5vw; text-align:center; font-size:.8rem; color:rgba(255,255,255,.45); }
+    .idx-footer strong { color:rgba(255,255,255,.75); }
+
+    /* ANIMATION */
+    .fade-up { opacity:0; transform:translateY(26px); animation:fadeUp .6s ease forwards; }
+    @keyframes fadeUp { to { opacity:1; transform:none; } }
+    .d1{animation-delay:.1s} .d2{animation-delay:.2s} .d3{animation-delay:.3s} .d4{animation-delay:.45s}
+  </style>
 </head>
+
 <body>
-  <div class="top-bar"></div>
-  <main class="page-shell">
-    <section class="institution-panel">
-      <p class="institution-type">College ERP Portal</p>
-      <h1>Student Management System</h1>
-      <p class="institution-copy">
-        Official login portal for admin, students, and faculty. New accounts are created only by the admin.
+
+  <div class="idx-topbar"></div>
+
+  <!-- NAV -->
+  <nav class="idx-nav">
+    <a class="idx-brand" href="index.html">
+      <span class="idx-brand-icon"><i class="fa-solid fa-graduation-cap"></i></span>
+      Student&nbsp;MS
+    </a>
+    <div class="idx-nav-links">
+      <a href="#features">Features</a>
+      <a href="#team">Team</a>
+      <a href="#about">About</a>
+      <a href="login.html">Login</a>
+    </div>
+    <a class="idx-nav-cta" href="login.html">
+      <i class="fa-solid fa-right-to-bracket"></i> Get Started
+    </a>
+  </nav>
+
+  <!-- HERO -->
+  <section id="about" style="background:#f5f9f7;">
+    <div class="idx-hero-wrap">
+
+      <div>
+        <div class="idx-eyebrow fade-up"><span class="dot"></span> College ERP Portal &middot; v2026</div>
+
+        <h1 class="idx-h1 fade-up d1">
+          Manage every<br>
+          <em>student record</em>,<br>
+          result &amp; grade.
+        </h1>
+
+        <p class="idx-lead fade-up d2">
+          A modern Student Management System built for administrators, faculty, and students &mdash;
+          track marks, compute GPA, generate semester results, and keep every campus record in sync.
+        </p>
+
+        <div class="idx-ctas fade-up d3">
+          <a class="idx-btn-p" href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Get Started</a>
+          <a class="idx-btn-o" href="#features"><i class="fa-solid fa-layer-group"></i> Explore Features</a>
+        </div>
+
+        <div class="idx-stats fade-up d4">
+          <div class="idx-stats-item"><strong>3</strong><span>User Roles</span></div>
+          <div class="idx-stats-item"><strong>10+</strong><span>Modules</span></div>
+          <div class="idx-stats-item"><strong>100%</strong><span>DB-Driven</span></div>
+          <div class="idx-stats-item"><strong>SSL</strong><span>Secured</span></div>
+        </div>
+      </div>
+
+      <aside class="idx-hero-card fade-up d3">
+        <h4>Academic Snapshot</h4>
+        <div class="idx-snap">
+          <div class="idx-snap-item"><strong>1248</strong><span>Students</span></div>
+          <div class="idx-snap-item"><strong>86</strong><span>Faculty</span></div>
+          <div class="idx-snap-item"><strong>124</strong><span>Courses</span></div>
+        </div>
+        <div class="idx-pills">
+          <div class="idx-pill"><i class="fa-solid fa-user-shield"></i>Administrator<span>Full Access</span></div>
+          <div class="idx-pill"><i class="fa-solid fa-chalkboard-user"></i>Faculty<span>Marks &amp; Courses</span></div>
+          <div class="idx-pill"><i class="fa-solid fa-user-graduate"></i>Student<span>Results &amp; GPA</span></div>
+        </div>
+      </aside>
+
+    </div>
+  </section>
+
+  <!-- STATS BANNER -->
+  <div class="idx-banner">
+    <div class="idx-banner-inner">
+      <div class="idx-banner-item"><strong>1248</strong><span>Registered Students</span></div>
+      <div class="idx-banner-item"><strong>86</strong><span>Faculty Members</span></div>
+      <div class="idx-banner-item"><strong>124</strong><span>Active Courses</span></div>
+      <div class="idx-banner-item"><strong>8</strong><span>Departments</span></div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="idx-sec">
+      <p class="idx-sec-label">What we offer</p>
+      <h2 class="idx-sec-h">Everything your campus needs</h2>
+      <p class="idx-sec-sub">From student registration to GPA computation &mdash; every module is purpose-built and database-backed.</p>
+
+      <div class="idx-feats">
+        <div class="idx-feat">
+          <div class="idx-feat-ico"><i class="fa-solid fa-user-plus"></i></div>
+          <h3>Student Registration</h3>
+          <p>Register and manage complete student profiles, batch info, and department assignments.</p>
+        </div>
+        <div class="idx-feat">
+          <div class="idx-feat-ico"><i class="fa-solid fa-chalkboard-user"></i></div>
+          <h3>Faculty Management</h3>
+          <p>Add faculty, assign courses, and manage course&ndash;department mappings seamlessly.</p>
+        </div>
+        <div class="idx-feat">
+          <div class="idx-feat-ico"><i class="fa-solid fa-pen-to-square"></i></div>
+          <h3>Marks Entry</h3>
+          <p>Enter marks per subject with auto-computed grades and grade points via DB triggers.</p>
+        </div>
+        <div class="idx-feat">
+          <div class="idx-feat-ico"><i class="fa-solid fa-chart-line"></i></div>
+          <h3>GPA &amp; Results</h3>
+          <p>Generate semester results with stored procedures; view GPA trends across cohorts.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM -->
+  <section id="team" class="idx-team-bg">
+    <div class="idx-sec">
+      <p class="idx-sec-label">The people behind it</p>
+      <h2 class="idx-sec-h">Meet the Team</h2>
+      <p class="idx-sec-sub">
+        Built for the Database Management Systems course at Thapar Institute of Engineering &amp; Technology.
       </p>
 
-      <div class="institution-meta">
-        <div>
-          <span>Access</span>
-          <strong>Admin, Student, Faculty</strong>
-        </div>
-        <div>
-          <span>Registration</span>
-          <strong>Admin Controlled</strong>
-        </div>
-      </div>
-    </section>
+      <div class="idx-team-grid">
 
-    <section class="login-panel">
-      <div class="panel-header">
-        <h2>Portal Login</h2>
-        <p class="subtitle">Select your role and sign in. Signup is disabled for all users.</p>
-      </div>
-
-      <div class="role-switcher" aria-label="Select user role">
-        <button class="role-chip active" data-role="admin" type="button">Admin</button>
-        <button class="role-chip" data-role="student" type="button">Student</button>
-        <button class="role-chip" data-role="faculty" type="button">Faculty</button>
-      </div>
-
-      <div class="role-card" id="roleCard">
-        <h3>Administrator Login</h3>
-        <p>Manage student records, faculty records, and assignments.</p>
-      </div>
-
-      <p class="status-message" id="statusMessage" aria-live="polite"></p>
-
-      <form class="login-form active" id="loginForm">
-        <label for="loginUserId">User ID</label>
-        <input id="loginUserId" name="loginUserId" type="text" placeholder="Enter admin ID" required>
-
-        <label for="loginPassword">Password</label>
-        <div class="password-row">
-          <input id="loginPassword" name="loginPassword" type="password" placeholder="Enter password" required>
-          <button class="toggle-password" data-target="loginPassword" type="button">Show</button>
+        <!-- HARMILAN — LEAD -->
+        <div class="idx-card lead">
+          <div class="idx-card-top">
+            <div class="idx-card-badge badge-lead"><i class="fa-solid fa-star" style="font-size:.55rem;margin-right:3px;"></i>Lead Developer</div>
+            <div class="idx-card-av">
+              <img src="images/harmilan.jpeg" alt="Lead Developer" />
+            </div>
+            <h3 class="idx-card-name">Harmilan</h3>
+            <p class="idx-card-role">Project Lead &amp; Full-Stack</p>
+          </div>
+          <div class="idx-card-body">
+            <div class="idx-card-roll"><i class="fa-solid fa-id-badge"></i>1024030522</div>
+            <div class="idx-card-tags">
+              <span class="idx-tag tg">Backend</span>
+              <span class="idx-tag tb">Node.js</span>
+              <span class="idx-tag to">MySQL</span>
+              <span class="idx-tag tp">Architecture</span>
+            </div>
+            <a class="idx-card-email" href="mailto:hharmilan_be24@thapar.edu">
+              <i class="fa-solid fa-envelope"></i> hharmilan_be24@thapar.edu
+            </a>
+          </div>
         </div>
 
-        <div class="form-row">
-          <label class="remember">
-            <input type="checkbox" name="remember">
-            <span>Remember me</span>
-          </label>
-          <span class="text-muted">Accounts are added by admin only</span>
+        <!-- HIMANI — FRONTEND -->
+        <div class="idx-card">
+          <div class="idx-card-top">
+            <div class="idx-card-badge badge-fe">Frontend</div>
+            <div class="idx-card-av"><i class="fa-solid fa-palette"></i></div>
+            <h3 class="idx-card-name">Himani</h3>
+            <p class="idx-card-role">UI / Frontend Developer</p>
+          </div>
+          <div class="idx-card-body">
+            <div class="idx-card-roll"><i class="fa-solid fa-id-badge"></i>1024030510</div>
+            <div class="idx-card-tags">
+              <span class="idx-tag tb">HTML / CSS</span>
+              <span class="idx-tag tg">JavaScript</span>
+              <span class="idx-tag to">UI Design</span>
+              <span class="idx-tag tp">Responsive</span>
+            </div>
+          </div>
         </div>
 
-        <button class="login-button" type="submit">Sign In</button>
-      </form>
+        <!-- JIYA — BACKEND + DB -->
+        <div class="idx-card">
+          <div class="idx-card-top">
+            <div class="idx-card-badge badge-be">Backend &amp; DB</div>
+            <div class="idx-card-av"><i class="fa-solid fa-database"></i></div>
+            <h3 class="idx-card-name">Jiya Gupta</h3>
+            <p class="idx-card-role">Backend &amp; Database Engineer</p>
+          </div>
+          <div class="idx-card-body">
+            <div class="idx-card-roll"><i class="fa-solid fa-id-badge"></i>1024030501</div>
+            <div class="idx-card-tags">
+              <span class="idx-tag to">MySQL</span>
+              <span class="idx-tag tp">Stored Procs</span>
+              <span class="idx-tag tg">Schema Design</span>
+              <span class="idx-tag tb">Triggers</span>
+            </div>
+          </div>
+        </div>
 
-      <p class="helper-note" id="helperNote">Sample admin login: harmilan_admin / admin123</p>
-    </section>
-  </main>
+      </div>
+    </div>
+  </section>
 
-  <script src="script.js?v=20260419d"></script>
+  <!-- FOOTER -->
+  <footer class="idx-footer">
+    &copy; 2026 <strong>Student Management System</strong>
+    &nbsp;&middot;&nbsp; Thapar Institute of Engineering &amp; Technology
+    &nbsp;&middot;&nbsp; DBMS Course Project
+  </footer>
+
 </body>
 </html>

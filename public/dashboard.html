@@ -4,11 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Overview</title>
-  <link rel="stylesheet" href="style.css?v=20260419d">
+
+  <link rel="stylesheet" href="style.css?v=20260501a">
+
+  <!-- FIX: Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
+
 <body data-page="overview">
+
   <div class="top-bar"></div>
+
   <main class="dashboard-layout">
+
+    <!-- SIDEBAR -->
     <aside class="dashboard-sidebar card">
       <div class="sidebar-brand">
         <p class="institution-type">Navigation</p>
@@ -28,140 +37,80 @@
       </nav>
     </aside>
 
+    <!-- MAIN -->
     <section class="dashboard-shell">
+
       <section class="dashboard-header card">
         <div>
           <p class="institution-type">Administrator Panel</p>
           <h1>Student Management Overview</h1>
-          <p class="institution-copy">
-            Review the current academic snapshot and open a management page from the left sidebar.
-          </p>
         </div>
+
         <div class="admin-summary">
           <strong id="dashboardName">Administrator</strong>
           <span id="dashboardEmail">-</span>
-          <button class="secondary-button" id="logoutButton" type="button">Logout</button>
+          <button class="secondary-button" id="logoutButton">Logout</button>
         </div>
       </section>
 
-      <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
+      <p class="status-message" id="dashboardStatus"></p>
 
+      <!-- UPDATED STAT CARDS -->
       <section class="dashboard-grid four-column">
-        <article class="card stat-card">
+
+        <article class="card stat-card variant-mint">
+          <i class="fa-solid fa-user-graduate stat-ico"></i>
           <span>Total Students</span>
           <strong id="studentCount">0</strong>
-          <p class="stat-note" id="studentNote">Registered student records</p>
         </article>
-        <article class="card stat-card">
+
+        <article class="card stat-card variant-blue">
+          <i class="fa-solid fa-chalkboard-user stat-ico"></i>
           <span>Total Faculty</span>
           <strong id="facultyCount">0</strong>
-          <p class="stat-note" id="facultyNote">Faculty accounts available</p>
         </article>
-        <article class="card stat-card">
+
+        <article class="card stat-card variant-warn">
+          <i class="fa-solid fa-book stat-ico"></i>
           <span>Total Courses</span>
           <strong id="courseCount">0</strong>
-          <p class="stat-note" id="courseNote">Courses configured</p>
         </article>
-        <article class="card stat-card">
+
+        <article class="card stat-card variant-mint">
+          <i class="fa-solid fa-building-columns stat-ico"></i>
           <span>Departments</span>
           <strong id="departmentCount">0</strong>
-          <p class="stat-note" id="departmentNote">Departments in system</p>
         </article>
+
       </section>
 
-      <section class="card">
-        <div class="panel-header">
-          <h2>Academic Snapshot</h2>
-          <p class="subtitle">A quick summary of the live records available in the system.</p>
-        </div>
-        <div class="profile-grid details-grid" id="overviewHighlights">
-          <div>
-            <span>Database Status</span>
-            <strong id="overviewDbStatus">Checking records</strong>
-          </div>
-          <div>
-            <span>Student Records</span>
-            <strong id="overviewStudentStatus">Waiting for data</strong>
-          </div>
-          <div>
-            <span>Results Section</span>
-            <strong id="overviewResultStatus">Waiting for data</strong>
-          </div>
-          <div>
-            <span>Activity Log</span>
-            <strong id="overviewActivityStatus">Waiting for data</strong>
-          </div>
-        </div>
-      </section>
-
+      <!-- CHARTS -->
       <section class="dashboard-grid two-column">
+
         <section class="card">
-          <div class="panel-header">
-            <h2>Recent Results</h2>
-            <p class="subtitle">Latest semester GPA records.</p>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Roll No</th>
-                  <th>Name</th>
-                  <th>Semester</th>
-                  <th>GPA</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="resultsTableBody"></tbody>
-            </table>
+          <h2>Performance Trend</h2>
+          <div class="chart-wrap" style="height:300px;">
+            <canvas id="gpaChart"></canvas>
           </div>
         </section>
 
         <section class="card">
-          <div class="panel-header">
-            <h2>Recent Activity</h2>
-            <p class="subtitle">Latest marks edit log entries.</p>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Faculty</th>
-                  <th>Student</th>
-                  <th>Course</th>
-                  <th>New Marks</th>
-                  <th>Time</th>
-                </tr>
-              </thead>
-              <tbody id="activityTableBody"></tbody>
-            </table>
+          <h2>Records Breakdown</h2>
+          <div class="chart-wrap" style="height:300px;">
+            <canvas id="breakdownChart"></canvas>
           </div>
         </section>
+
       </section>
 
-      <section class="card">
-        <div class="panel-header">
-          <h2>Quick View</h2>
-          <p class="subtitle">Newly added students in the system.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Roll No</th>
-                <th>Name</th>
-                <th>Department</th>
-                <th>Semester</th>
-                <th>Batch</th>
-              </tr>
-            </thead>
-            <tbody id="studentsTableBody"></tbody>
-          </table>
-        </div>
-      </section>
     </section>
   </main>
 
-  <script src="admin-common.js?v=20260419d"></script>
-  <script src="dashboard.js?v=20260419d"></script>
+  <!-- FIX: Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script src="admin-common.js?v=20260501a"></script>
+  <script src="dashboard.js?v=20260501a"></script>
+
 </body>
 </html>

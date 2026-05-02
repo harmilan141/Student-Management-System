@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login · Student Management System</title>
+
+  <link rel="stylesheet" href="style.css?v=20260501b">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+
+  <div class="top-bar"></div>
+
+  <main class="auth-wrapper">
+
+    <!-- LEFT SIDE -->
+    <aside class="auth-art">
+      <div class="auth-brand">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Student Management System</span>
+      </div>
+
+      <div class="auth-intro">
+        <h2>Welcome back.<br>Let's manage your campus.</h2>
+        <p>
+          Secure role-based access for administrators, faculty, and students.
+          New accounts are created only by the admin.
+        </p>
+
+        <div class="auth-bullets">
+          <span><i class="fa-solid fa-circle-check"></i> Real-time student &amp; faculty records</span>
+          <span><i class="fa-solid fa-circle-check"></i> Auto-computed grades &amp; GPA</span>
+          <span><i class="fa-solid fa-circle-check"></i> Activity log with full traceability</span>
+        </div>
+      </div>
+
+      <div style="font-size:12.5px;color:#a7f3d0;">
+        © 2026 Student Management System
+      </div>
+    </aside>
+
+    <!-- RIGHT SIDE -->
+    <section class="auth-form-wrap">
+      <div class="auth-card">
+
+        <a class="auth-back" href="index.html">
+          <i class="fa-solid fa-arrow-left"></i> Back to home
+        </a>
+
+        <h1>Portal Login</h1>
+        <p class="subtle">Select your role and sign in to continue.</p>
+
+        <!-- ROLE SELECT — FIX: buttons are now in correct order (admin, student, faculty) -->
+        <div class="role-switcher">
+          <button class="role-chip active" data-role="admin" type="button">
+            <i class="fa-solid fa-user-shield"></i> Admin
+          </button>
+
+          <button class="role-chip" data-role="student" type="button">
+            <i class="fa-solid fa-user-graduate"></i> Student
+          </button>
+
+          <button class="role-chip" data-role="faculty" type="button">
+            <i class="fa-solid fa-chalkboard-user"></i> Faculty
+          </button>
+        </div>
+
+        <!-- FIX: Added id="roleCard" so script.js can find and update this element -->
+        <div class="role-card" id="roleCard">
+          <h3>Administrator Login</h3>
+          <p>Manage departments, students, faculty, courses, marks, GPA, and results.</p>
+        </div>
+
+        <p class="status-message" id="statusMessage"></p>
+
+        <!-- FORM -->
+        <form id="loginForm">
+
+          <div class="field">
+            <label for="loginUserId">User ID</label>
+            <div class="input-box">
+              <i class="fa-solid fa-user"></i>
+              <input id="loginUserId" type="text" placeholder="Enter admin ID" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="loginPassword">Password</label>
+            <div class="input-box">
+              <i class="fa-solid fa-lock"></i>
+              <input id="loginPassword" type="password" placeholder="Enter password" required>
+              <!-- FIX: Added class="toggle-password" so the password-toggle listener fires -->
+              <button class="toggle-password" type="button">Show</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>
+              <input type="checkbox">
+              <span>Remember me</span>
+            </label>
+
+            <a href="#" onclick="alert('Please contact your administrator'); return false;">
+              Forgot password?
+            </a>
+          </div>
+
+          <button class="login-button" type="submit">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In
+          </button>
+
+        </form>
+
+        <!-- FIX: Added id="helperNote" so script.js can update the sample credentials text -->
+        <p class="helper-note" id="helperNote">
+          Sample admin login: harmilan_admin / admin123
+        </p>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js?v=20260501b"></script>
+
+</body>
+</html>
