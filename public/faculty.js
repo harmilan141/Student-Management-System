@@ -1,5 +1,28 @@
 const facultyApp = window.AdminApp;
 
+function renderFacultyRows(facultyRows) {
+  const body = document.getElementById("facultyTableBody");
+  body.innerHTML = "";
+
+  if (!facultyRows.length) {
+    body.innerHTML = '<tr><td colspan="6">No faculty found.</td></tr>';
+    return;
+  }
+
+  facultyRows.forEach((item) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.faculty_id ?? "-"}</td>
+      <td>${item.faculty_code ?? "-"}</td>
+      <td>${item.faculty_name ?? "-"}</td>
+      <td>${item.designation ?? "-"}</td>
+      <td>${item.dept_name ?? "-"}</td>
+      <td><button class="danger-button" data-delete-faculty="${item.faculty_id}" type="button">Delete</button></td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
 async function loadFacultyPage() {
   const [lookupsResult, dashboardResult] = await Promise.all([
     facultyApp.fetchJson("/api/lookups"),
@@ -21,12 +44,7 @@ async function loadFacultyPage() {
     (item) => `${item.dept_code} - ${item.dept_name}`
   );
 
-  facultyApp.renderTableBody(
-    "facultyTableBody",
-    dashboardResult.data.faculty,
-    ["faculty_id", "faculty_code", "faculty_name", "designation", "dept_name"],
-    "No faculty found."
-  );
+  renderFacultyRows(dashboardResult.data.faculty);
 }
 
 document.getElementById("facultyForm").addEventListener("submit", async (event) => {
@@ -66,6 +84,27 @@ document.getElementById("facultyForm").addEventListener("submit", async (event) 
 
 document.getElementById("facultyResetButton").addEventListener("click", () => {
   document.getElementById("facultyForm").reset();
+});
+
+document.getElementById("facultyTableBody").addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-delete-faculty]");
+  if (!button) return;
+
+  const ok = window.confirm("Delete this faculty record? This also releases their course assignments.");
+  if (!ok) return;
+
+  try {
+    const result = await facultyApp.fetchJson(`/api/faculty/${button.dataset.deleteFaculty}`, {
+      method: "DELETE"
+    });
+    if (!result.ok) {
+      throw new Error(result.data.message || "Unable to delete faculty.");
+    }
+    facultyApp.setStatus("Faculty deleted successfully.", "success");
+    await loadFacultyPage();
+  } catch (error) {
+    facultyApp.setStatus(error.message, "error");
+  }
 });
 
 loadFacultyPage().catch((error) => facultyApp.setStatus(error.message, "error"));

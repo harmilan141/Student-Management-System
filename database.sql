@@ -26,11 +26,13 @@ DROP TABLE IF EXISTS admins;
 -- 1. admins
 -- -----------------------------------------------
 CREATE TABLE admins (
-  id          INT AUTO_INCREMENT PRIMARY KEY,
-  name        VARCHAR(100)  NOT NULL,
-  email       VARCHAR(150)  NOT NULL UNIQUE,
-  password    VARCHAR(255)  NOT NULL,
-  created_at  TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  name           VARCHAR(100)  NOT NULL,
+  email          VARCHAR(150)  NOT NULL UNIQUE,
+  password       VARCHAR(255)  NOT NULL,
+  admin_username VARCHAR(50)   NOT NULL UNIQUE,
+  password_hash  VARCHAR(64)   NOT NULL,
+  created_at     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- -----------------------------------------------
@@ -74,6 +76,7 @@ CREATE TABLE students (
   student_name VARCHAR(100) NOT NULL,
   email        VARCHAR(150) NOT NULL UNIQUE,
   password     VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(64) DEFAULT NULL,
   dept_id      INT          NOT NULL,
   sem_id       INT          NOT NULL,
   batch        VARCHAR(20)  NOT NULL,
@@ -91,6 +94,7 @@ CREATE TABLE faculty (
   faculty_name VARCHAR(100) NOT NULL,
   email        VARCHAR(150) NOT NULL UNIQUE,
   password     VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(64) DEFAULT NULL,
   dept_id      INT          NOT NULL,
   created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (dept_id) REFERENCES departments(id) ON DELETE CASCADE

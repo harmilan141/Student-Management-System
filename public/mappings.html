@@ -1,80 +1,129 @@
-const mappingApp = window.AdminApp;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course and Faculty Mapping</title>
+  <link rel="stylesheet" href="style.css?v=20260419d">
+</head>
+<body data-page="mappings">
+  <div class="top-bar"></div>
+  <main class="dashboard-layout">
+    <aside class="dashboard-sidebar card">
+      <div class="sidebar-brand">
+        <p class="institution-type">Navigation</p>
+        <h2>Admin Modules</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" data-nav="overview" href="dashboard.html">Overview</a>
+        <a class="sidebar-link" data-nav="departments" href="departments.html">Department Management</a>
+        <a class="sidebar-link" data-nav="semesters" href="semesters.html">Semester Management</a>
+        <a class="sidebar-link" data-nav="courses" href="courses.html">Course Management</a>
+        <a class="sidebar-link" data-nav="students" href="students.html">Student Management</a>
+        <a class="sidebar-link" data-nav="faculty" href="faculty.html">Faculty Management</a>
+        <a class="sidebar-link" data-nav="mappings" href="mappings.html">Course and Faculty Mapping</a>
+        <a class="sidebar-link" data-nav="marks" href="marks.html">Marks Entry</a>
+        <a class="sidebar-link" data-nav="results" href="results.html">Result Generation</a>
+      </nav>
+    </aside>
 
-async function loadMappingsPage() {
-  const [lookupsResult, dashboardResult] = await Promise.all([
-    mappingApp.fetchJson("/api/lookups"),
-    mappingApp.fetchJson("/api/dashboard-data")
-  ]);
+    <section class="dashboard-shell">
+      <section class="dashboard-header card">
+        <div>
+          <p class="institution-type">Administrator Panel</p>
+          <h1>Course and Faculty Mapping</h1>
+          <p class="institution-copy">Connect departments, courses, and faculty assignments.</p>
+        </div>
+        <div class="admin-summary">
+          <strong id="dashboardName">Administrator</strong>
+          <span id="dashboardEmail">-</span>
+          <button class="secondary-button" id="logoutButton" type="button">Logout</button>
+        </div>
+      </section>
 
-  if (!lookupsResult.ok) {
-    throw new Error(lookupsResult.data.message || "Unable to load mapping lookups.");
-  }
+      <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
 
-  if (!dashboardResult.ok) {
-    throw new Error(dashboardResult.data.message || "Unable to load mapping data.");
-  }
+      <section class="dashboard-grid two-column">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Department Course Mapping</h2>
+            <p class="subtitle">Assign a course to a department.</p>
+          </div>
+          <form class="stack-form" id="departmentCourseForm">
+            <label for="mapDepartment">Department</label>
+            <select id="mapDepartment" required></select>
 
-  const { departments, courses, faculty } = lookupsResult.data;
-  mappingApp.fillSelect("mapDepartment", departments, "dept_id", (item) => `${item.dept_code} - ${item.dept_name}`);
-  mappingApp.fillSelect("assignDepartment", departments, "dept_id", (item) => `${item.dept_code} - ${item.dept_name}`);
-  mappingApp.fillSelect("mapCourse", courses, "course_id", (item) => `${item.course_code} - ${item.course_name}`);
-  mappingApp.fillSelect("assignCourse", courses, "course_id", (item) => `${item.course_code} - ${item.course_name}`);
-  mappingApp.fillSelect("assignFaculty", faculty, "faculty_id", (item) => `${item.faculty_code} - ${item.faculty_name}`);
+            <label for="mapCourse">Course</label>
+            <select id="mapCourse" required></select>
 
-  mappingApp.renderTableBody(
-    "departmentCoursesTableBody",
-    dashboardResult.data.departmentCourseMappings.map((item) => ({
-      dept_name: `${item.dept_code} - ${item.dept_name}`,
-      course_code: item.course_code,
-      course_name: item.course_name
-    })),
-    ["dept_name", "course_code", "course_name"],
-    "No department-course mappings found."
-  );
+            <button class="login-button" type="submit">Save Mapping</button>
+          </form>
+        </section>
 
-  mappingApp.renderTableBody(
-    "facultyCoursesTableBody",
-    dashboardResult.data.facultyCourseAssignments.map((item) => ({
-      faculty_name: `${item.faculty_code} - ${item.faculty_name}`,
-      course_name: `${item.course_code} - ${item.course_name}`,
-      dept_name: item.dept_name
-    })),
-    ["faculty_name", "course_name", "dept_name"],
-    "No faculty-course assignments found."
-  );
-}
+        <section class="card">
+          <div class="panel-header">
+            <h2>Faculty Course Assignment</h2>
+            <p class="subtitle">Assign a faculty member to a course.</p>
+          </div>
+          <form class="stack-form" id="facultyCourseForm">
+            <label for="assignDepartment">Department</label>
+            <select id="assignDepartment" required></select>
 
-document.getElementById("departmentCourseForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
+            <label for="assignCourse">Course</label>
+            <select id="assignCourse" required></select>
 
-  try {
-    await mappingApp.submitJson("/api/department-course-mappings", "POST", {
-      deptId: document.getElementById("mapDepartment").value,
-      courseId: document.getElementById("mapCourse").value
-    });
-    event.target.reset();
-    mappingApp.setStatus("Department-course mapping saved.", "success");
-    await loadMappingsPage();
-  } catch (error) {
-    mappingApp.setStatus(error.message, "error");
-  }
-});
+            <label for="assignFaculty">Faculty</label>
+            <select id="assignFaculty" required></select>
 
-document.getElementById("facultyCourseForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
+            <button class="login-button" type="submit">Save Assignment</button>
+          </form>
+        </section>
+      </section>
 
-  try {
-    await mappingApp.submitJson("/api/faculty-course-assignments", "POST", {
-      facultyId: document.getElementById("assignFaculty").value,
-      courseId: document.getElementById("assignCourse").value,
-      deptId: document.getElementById("assignDepartment").value
-    });
-    event.target.reset();
-    mappingApp.setStatus("Faculty-course assignment saved.", "success");
-    await loadMappingsPage();
-  } catch (error) {
-    mappingApp.setStatus(error.message, "error");
-  }
-});
+      <section class="dashboard-grid two-column">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Department Course List</h2>
+            <p class="subtitle">Courses grouped by department.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Department</th>
+                  <th>Course Code</th>
+                  <th>Course Name</th>
+                </tr>
+              </thead>
+              <tbody id="departmentCoursesTableBody"></tbody>
+            </table>
+          </div>
+        </section>
 
-loadMappingsPage().catch((error) => mappingApp.setStatus(error.message, "error"));
+        <section class="card">
+          <div class="panel-header">
+            <h2>Faculty Course List</h2>
+            <p class="subtitle">Current teaching assignments.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Faculty</th>
+                  <th>Course</th>
+                  <th>Department</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="facultyCoursesTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="admin-common.js?v=20260419d"></script>
+  <script src="mappings.js?v=20260419d"></script>
+</body>
+</html>

@@ -359,6 +359,16 @@ button { font-family: inherit; cursor: pointer; }
 .login-button:hover { transform: translateY(-2px); filter: brightness(1.05); }
 .login-button:active { transform: translateY(0); }
 .login-button.danger-button { background: linear-gradient(180deg, #f87171, var(--danger)); box-shadow: 0 10px 22px rgba(239,68,68,.22); }
+.danger-button {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  font-weight: 700;
+  padding: 8px 10px;
+}
+.danger-button:hover { filter: brightness(.98); }
 
 .status-message {
   min-height: 20px; font-size: 13px; color: var(--ink-600);
@@ -552,6 +562,7 @@ tbody tr:last-child td { border-bottom: none; }
 .table-grid { display: grid; gap: 18px; }
 .table-grid.two-column { grid-template-columns: 1fr 1fr; }
 @media (max-width: 900px) { .table-grid.two-column { grid-template-columns: 1fr; } }
+.user-content-stack { display: flex; flex-direction: column; gap: 18px; }
 
 /* Scrollbars */
 ::-webkit-scrollbar { width: 8px; height: 8px; }

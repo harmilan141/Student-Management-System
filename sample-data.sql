@@ -9,8 +9,8 @@ USE defaultdb;
 -- -----------------------------------------------
 -- 1. Admin account
 -- -----------------------------------------------
-INSERT INTO admins (name, email, password) VALUES
-  ('Harmilan', 'harmilan.admin@college.edu', 'admin123');
+INSERT INTO admins (name, email, password, admin_username, password_hash) VALUES
+  ('Harmilan', 'harmilan.admin@college.edu', 'admin123', 'harmilan_admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9');
 
 -- -----------------------------------------------
 -- 2. Departments
@@ -74,39 +74,39 @@ INSERT INTO courses (course_code, course_name, credits, dept_id, sem_id) VALUES
 -- -----------------------------------------------
 -- 5. Faculty
 -- -----------------------------------------------
-INSERT INTO faculty (faculty_code, faculty_name, email, password, dept_id) VALUES
-  ('FAC001', 'Dr. Rajesh Kumar',    'rajesh.kumar@college.edu',   'faculty123', 1),
-  ('FAC002', 'Prof. Sunita Sharma', 'sunita.sharma@college.edu',  'faculty123', 1),
-  ('FAC003', 'Dr. Amit Singh',      'amit.singh@college.edu',     'faculty123', 1),
-  ('FAC004', 'Prof. Priya Verma',   'priya.verma@college.edu',    'faculty123', 2),
-  ('FAC005', 'Dr. Ravi Mehta',      'ravi.mehta@college.edu',     'faculty123', 3);
+INSERT INTO faculty (faculty_code, faculty_name, email, password, password_hash, dept_id) VALUES
+  ('FAC001', 'Dr. Rajesh Kumar',    'rajesh.kumar@college.edu',   'faculty123', '27041f5856c7387a997252694afb048d1aa939228ffcdbd6285b979b8da20e7a', 1),
+  ('FAC002', 'Prof. Sunita Sharma', 'sunita.sharma@college.edu',  'faculty123', '27041f5856c7387a997252694afb048d1aa939228ffcdbd6285b979b8da20e7a', 1),
+  ('FAC003', 'Dr. Amit Singh',      'amit.singh@college.edu',     'faculty123', '27041f5856c7387a997252694afb048d1aa939228ffcdbd6285b979b8da20e7a', 1),
+  ('FAC004', 'Prof. Priya Verma',   'priya.verma@college.edu',    'faculty123', '27041f5856c7387a997252694afb048d1aa939228ffcdbd6285b979b8da20e7a', 2),
+  ('FAC005', 'Dr. Ravi Mehta',      'ravi.mehta@college.edu',     'faculty123', '27041f5856c7387a997252694afb048d1aa939228ffcdbd6285b979b8da20e7a', 3);
 
 -- -----------------------------------------------
 -- 6. Students  (CSE — Semesters 1 & 2)
 -- -----------------------------------------------
-INSERT INTO students (roll_no, student_name, email, password, dept_id, sem_id, batch) VALUES
+INSERT INTO students (roll_no, student_name, email, password, password_hash, dept_id, sem_id, batch) VALUES
   -- Batch 2024, Semester 1
-  ('2024CSE001', 'Aarav Patel',    'aarav.patel@student.edu',    'student123', 1, 1, '2024'),
-  ('2024CSE002', 'Priya Sharma',   'priya.sharma@student.edu',   'student123', 1, 1, '2024'),
-  ('2024CSE003', 'Rohan Gupta',    'rohan.gupta@student.edu',    'student123', 1, 1, '2024'),
-  ('2024CSE004', 'Sneha Singh',    'sneha.singh@student.edu',    'student123', 1, 1, '2024'),
-  ('2024CSE005', 'Vikram Yadav',   'vikram.yadav@student.edu',   'student123', 1, 1, '2024'),
+  ('2024CSE001', 'Aarav Patel',    'aarav.patel@student.edu',    'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 1, '2024'),
+  ('2024CSE002', 'Priya Sharma',   'priya.sharma@student.edu',   'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 1, '2024'),
+  ('2024CSE003', 'Rohan Gupta',    'rohan.gupta@student.edu',    'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 1, '2024'),
+  ('2024CSE004', 'Sneha Singh',    'sneha.singh@student.edu',    'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 1, '2024'),
+  ('2024CSE005', 'Vikram Yadav',   'vikram.yadav@student.edu',   'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 1, '2024'),
 
   -- Batch 2023, Semester 2
-  ('2023CSE001', 'Anjali Mehta',   'anjali.mehta@student.edu',   'student123', 1, 2, '2023'),
-  ('2023CSE002', 'Karan Joshi',    'karan.joshi@student.edu',    'student123', 1, 2, '2023'),
-  ('2023CSE003', 'Divya Nair',     'divya.nair@student.edu',     'student123', 1, 2, '2023'),
-  ('2023CSE004', 'Arjun Mishra',   'arjun.mishra@student.edu',   'student123', 1, 2, '2023'),
-  ('2023CSE005', 'Pooja Reddy',    'pooja.reddy@student.edu',    'student123', 1, 2, '2023'),
+  ('2023CSE001', 'Anjali Mehta',   'anjali.mehta@student.edu',   'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 2, '2023'),
+  ('2023CSE002', 'Karan Joshi',    'karan.joshi@student.edu',    'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 2, '2023'),
+  ('2023CSE003', 'Divya Nair',     'divya.nair@student.edu',     'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 2, '2023'),
+  ('2023CSE004', 'Arjun Mishra',   'arjun.mishra@student.edu',   'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 2, '2023'),
+  ('2023CSE005', 'Pooja Reddy',    'pooja.reddy@student.edu',    'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 2, '2023'),
 
   -- Batch 2022, Semester 3
-  ('2022CSE001', 'Rahul Tiwari',   'rahul.tiwari@student.edu',   'student123', 1, 3, '2022'),
-  ('2022CSE002', 'Meena Kapoor',   'meena.kapoor@student.edu',   'student123', 1, 3, '2022'),
-  ('2022CSE003', 'Suresh Bansal',  'suresh.bansal@student.edu',  'student123', 1, 3, '2022'),
+  ('2022CSE001', 'Rahul Tiwari',   'rahul.tiwari@student.edu',   'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 3, '2022'),
+  ('2022CSE002', 'Meena Kapoor',   'meena.kapoor@student.edu',   'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 3, '2022'),
+  ('2022CSE003', 'Suresh Bansal',  'suresh.bansal@student.edu',  'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 3, '2022'),
 
   -- Batch 2021, Semester 4
-  ('2021CSE001', 'Neha Agarwal',   'neha.agarwal@student.edu',   'student123', 1, 4, '2021'),
-  ('2021CSE002', 'Deepak Chandra', 'deepak.chandra@student.edu', 'student123', 1, 4, '2021');
+  ('2021CSE001', 'Neha Agarwal',   'neha.agarwal@student.edu',   'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 4, '2021'),
+  ('2021CSE002', 'Deepak Chandra', 'deepak.chandra@student.edu', 'student123', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 1, 4, '2021');
 
 -- -----------------------------------------------
 -- 7. Course–Faculty Mapping

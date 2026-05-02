@@ -54,6 +54,11 @@ function isDuplicateError(error) {
   return error && error.code === "ER_DUP_ENTRY";
 }
 
+function credentialsMatch(row, password) {
+  const hashedPassword = hashPassword(password);
+  return row.password_hash === hashedPassword || row.password === password || row.password === hashedPassword;
+}
+
 // ─── HEALTH ──────────────────────────────────────────────────
 app.get("/api/health", async (req, res) => {
   try {
@@ -77,21 +82,24 @@ app.post("/api/login", async (req, res) => {
 
   const queries = {
     admin: {
-      sql: `SELECT id AS admin_id, admin_username AS user_id, name AS full_name, email, 'admin' AS role
+      sql: `SELECT id AS admin_id, admin_username AS user_id, name AS full_name, email,
+                   password, password_hash, 'admin' AS role
             FROM admins
-            WHERE admin_username = ? AND password_hash = ?
+            WHERE admin_username = ? OR email = ?
             LIMIT 1`
     },
     student: {
-      sql: `SELECT id AS student_id, roll_no AS user_id, student_name AS full_name, email, 'student' AS role
+      sql: `SELECT id AS student_id, roll_no AS user_id, student_name AS full_name, email,
+                   password, password_hash, 'student' AS role
             FROM students
-            WHERE roll_no = ? AND password_hash = ?
+            WHERE roll_no = ? OR email = ?
             LIMIT 1`
     },
     faculty: {
-      sql: `SELECT id AS faculty_id, faculty_code AS user_id, faculty_name AS full_name, email, 'faculty' AS role
+      sql: `SELECT id AS faculty_id, faculty_code AS user_id, faculty_name AS full_name, email,
+                   password, password_hash, 'faculty' AS role
             FROM faculty
-            WHERE faculty_code = ? AND password_hash = ?
+            WHERE faculty_code = ? OR email = ?
             LIMIT 1`
     }
   };
@@ -102,13 +110,14 @@ app.post("/api/login", async (req, res) => {
   }
 
   try {
-    const [rows] = await pool.query(config.sql, [userId, hashPassword(password)]);
+    const [rows] = await pool.query(config.sql, [userId, userId]);
 
-    if (rows.length === 0) {
+    if (rows.length === 0 || !credentialsMatch(rows[0], password)) {
       return res.status(401).json({ ok: false, message: "Invalid credentials or role." });
     }
 
-    res.json({ ok: true, user: rows[0] });
+    const { password: _password, password_hash: _passwordHash, ...user } = rows[0];
+    res.json({ ok: true, user });
   } catch (error) {
     res.status(500).json({ ok: false, message: "Unable to log in.", error: error.message });
   }
@@ -154,13 +163,17 @@ app.get("/api/dashboard-data", async (req, res) => {
     let studentSql = `
       SELECT s.id AS student_id, s.roll_no, s.student_name,
              d.dept_name, sm.sem_number, s.batch,
-             COALESCE(f.faculty_name, 'Not assigned') AS assigned_faculty
+             COALESCE(MAX(f.faculty_name), 'Not assigned') AS assigned_faculty
       FROM students s
       JOIN departments d  ON s.dept_id = d.id
       JOIN semesters  sm  ON s.sem_id  = sm.id
-      LEFT JOIN course_faculty_mapping cfm ON cfm.course_id IN (
-        SELECT id FROM courses WHERE dept_id = s.dept_id AND sem_id = s.sem_id LIMIT 1
-      )
+      LEFT JOIN (
+        SELECT dept_id, sem_id, MIN(id) AS course_id
+        FROM courses
+        GROUP BY dept_id, sem_id
+      ) first_course ON first_course.dept_id = s.dept_id
+                    AND first_course.sem_id = s.sem_id
+      LEFT JOIN course_faculty_mapping cfm ON cfm.course_id = first_course.course_id
       LEFT JOIN faculty f ON cfm.faculty_id = f.id
       WHERE 1=1
     `;
@@ -174,7 +187,7 @@ app.get("/api/dashboard-data", async (req, res) => {
       studentSql += " AND s.dept_id = ?";
       studentParams.push(departmentId);
     }
-    studentSql += " GROUP BY s.id ORDER BY s.id";
+    studentSql += " GROUP BY s.id, s.roll_no, s.student_name, d.dept_name, sm.sem_number, s.batch ORDER BY s.id";
 
     const [students] = await pool.query(studentSql, studentParams);
 
@@ -204,8 +217,11 @@ app.get("/api/dashboard-data", async (req, res) => {
 
     // course_faculty_mapping is the only mapping table
     const [mappings] = await pool.query(`
-      SELECT cfm.id AS mapping_id, f.faculty_name, c.course_name,
-             d.dept_name, sm.sem_number
+      SELECT cfm.id AS mapping_id,
+             f.id AS faculty_id, f.faculty_code, f.faculty_name,
+             c.id AS course_id, c.course_code, c.course_name,
+             d.id AS dept_id, d.dept_code, d.dept_name,
+             sm.sem_number
       FROM course_faculty_mapping cfm
       JOIN faculty      f  ON cfm.faculty_id = f.id
       JOIN courses      c  ON cfm.course_id  = c.id
@@ -214,12 +230,41 @@ app.get("/api/dashboard-data", async (req, res) => {
       ORDER BY cfm.id
     `);
 
+    const [departmentCourseMappings] = await pool.query(`
+      SELECT c.id AS course_id, c.course_code, c.course_name,
+             d.id AS dept_id, d.dept_code, d.dept_name
+      FROM courses c
+      JOIN departments d ON c.dept_id = d.id
+      ORDER BY d.dept_code, c.course_code
+    `);
+
     const [marks] = await pool.query(`
       SELECT m.id AS marks_id, s.roll_no, s.student_name,
-             c.course_name, m.marks AS marks_obtained, m.max_marks
+             c.course_code, c.course_name,
+             COALESCE(f.faculty_code, 'Unassigned') AS faculty_code,
+             COALESCE(f.faculty_name, 'Unassigned') AS faculty_name,
+             m.marks AS marks_obtained, m.max_marks,
+             CASE
+               WHEN m.marks >= 90 THEN 'A+'
+               WHEN m.marks >= 80 THEN 'A'
+               WHEN m.marks >= 70 THEN 'B'
+               WHEN m.marks >= 60 THEN 'C'
+               WHEN m.marks >= 50 THEN 'D'
+               ELSE 'F'
+             END AS grade,
+             CASE
+               WHEN m.marks >= 90 THEN 10
+               WHEN m.marks >= 80 THEN 9
+               WHEN m.marks >= 70 THEN 8
+               WHEN m.marks >= 60 THEN 7
+               WHEN m.marks >= 50 THEN 6
+               ELSE 0
+             END AS grade_point
       FROM marks m
       JOIN students s ON m.student_id = s.id
       JOIN courses  c ON m.course_id  = c.id
+      LEFT JOIN course_faculty_mapping cfm ON cfm.course_id = c.id
+      LEFT JOIN faculty f ON f.id = cfm.faculty_id
       ORDER BY m.id DESC
       LIMIT 200
     `);
@@ -234,6 +279,17 @@ app.get("/api/dashboard-data", async (req, res) => {
       LIMIT 200
     `);
 
+    const [activityLogs] = await pool.query(`
+      SELECT al.id, f.faculty_code, f.faculty_name, s.roll_no,
+             c.course_code, NULL AS old_marks, al.new_marks, al.action_time
+      FROM activity_log al
+      JOIN faculty f ON al.faculty_id = f.id
+      JOIN students s ON al.student_id = s.id
+      JOIN courses c ON al.course_id = c.id
+      ORDER BY al.action_time DESC
+      LIMIT 200
+    `);
+
     res.json({
       ok: true,
       students,
@@ -242,9 +298,12 @@ app.get("/api/dashboard-data", async (req, res) => {
       departments,
       semesters,
       mappings,
+      departmentCourseMappings,
+      facultyCourseAssignments: mappings,
       assignments: mappings, // alias for frontend compatibility
       marks,
-      results
+      results,
+      activityLogs
     });
   } catch (error) {
     res.status(500).json({ ok: false, message: "Failed to load dashboard data.", error: error.message });
@@ -531,7 +590,16 @@ app.get("/api/student/:rollNo", async (req, res) => {
     );
 
     const [marks] = await pool.query(
-      `SELECT m.id, m.marks, m.max_marks, c.course_name, c.course_code
+      `SELECT m.id, m.marks, m.max_marks, c.course_name, c.course_code,
+              ROUND((m.marks / m.max_marks) * 100, 2) AS percentage,
+              CASE
+                WHEN m.marks >= 90 THEN 'A+'
+                WHEN m.marks >= 80 THEN 'A'
+                WHEN m.marks >= 70 THEN 'B'
+                WHEN m.marks >= 60 THEN 'C'
+                WHEN m.marks >= 50 THEN 'D'
+                ELSE 'F'
+              END AS grade
        FROM marks m
        JOIN courses c ON m.course_id = c.id
        WHERE m.student_id = ?
@@ -617,22 +685,136 @@ app.get("/api/faculty/:facultyCode", async (req, res) => {
     const faculty = facultyRows[0];
 
     const [courses] = await pool.query(
-      `SELECT DISTINCT c.course_code, c.course_name, sm.sem_number
+      `SELECT DISTINCT c.id AS course_id, c.course_code, c.course_name,
+              d.dept_name, sm.sem_number
        FROM course_faculty_mapping cfm
        JOIN courses   c  ON cfm.course_id  = c.id
+       JOIN departments d ON c.dept_id = d.id
        JOIN semesters sm ON c.sem_id       = sm.id
        WHERE cfm.faculty_id = ?`,
       [faculty.id]
     );
 
-    res.json({ ok: true, faculty, courses, students: [] });
+    const [students] = await pool.query(
+      `SELECT DISTINCT s.roll_no, s.student_name, d.dept_name, sm.sem_number, s.batch
+       FROM course_faculty_mapping cfm
+       JOIN courses c ON cfm.course_id = c.id
+       JOIN students s ON s.dept_id = c.dept_id AND s.sem_id = c.sem_id
+       JOIN departments d ON s.dept_id = d.id
+       JOIN semesters sm ON s.sem_id = sm.id
+       WHERE cfm.faculty_id = ?
+       ORDER BY s.roll_no`,
+      [faculty.id]
+    );
+
+    const [studentMarks] = await pool.query(
+      `SELECT s.roll_no, s.student_name,
+              c.id AS course_id, c.course_code, c.course_name,
+              m.id AS marks_id, m.marks, m.max_marks, m.updated_at
+       FROM course_faculty_mapping cfm
+       JOIN courses c ON cfm.course_id = c.id
+       JOIN students s ON s.dept_id = c.dept_id AND s.sem_id = c.sem_id
+       LEFT JOIN marks m ON m.student_id = s.id AND m.course_id = c.id
+       WHERE cfm.faculty_id = ?
+       ORDER BY s.roll_no, c.course_code`,
+      [faculty.id]
+    );
+
+    res.json({ ok: true, faculty, courses, students, studentMarks });
   } catch (error) {
     res.status(500).json({ ok: false, message: "Failed to load faculty profile.", error: error.message });
   }
 });
 
+app.post("/api/faculty/:facultyCode/marks", async (req, res) => {
+  const { rollNo, courseId, marksObtained } = req.body;
+  const marksValue = Number(marksObtained);
+
+  if (!rollNo || !courseId || marksObtained === undefined) {
+    return res.status(400).json({ ok: false, message: "Student, course, and marks are required." });
+  }
+  if (!Number.isFinite(marksValue) || marksValue < 0 || marksValue > 100) {
+    return res.status(400).json({ ok: false, message: "Marks must be between 0 and 100." });
+  }
+
+  try {
+    const [[assignment]] = await pool.query(
+      `SELECT f.id AS faculty_id, s.id AS student_id, c.id AS course_id
+       FROM faculty f
+       JOIN course_faculty_mapping cfm ON cfm.faculty_id = f.id
+       JOIN courses c ON cfm.course_id = c.id
+       JOIN students s ON s.dept_id = c.dept_id AND s.sem_id = c.sem_id
+       WHERE f.faculty_code = ?
+         AND s.roll_no = ?
+         AND c.id = ?
+       LIMIT 1`,
+      [req.params.facultyCode, rollNo, courseId]
+    );
+
+    if (!assignment) {
+      return res.status(403).json({
+        ok: false,
+        message: "This student is not assigned to this faculty for the selected course."
+      });
+    }
+
+    const [[existingMark]] = await pool.query(
+      "SELECT id FROM marks WHERE student_id = ? AND course_id = ?",
+      [assignment.student_id, assignment.course_id]
+    );
+
+    await pool.query(
+      `INSERT INTO marks (student_id, course_id, marks)
+       VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE marks = VALUES(marks)`,
+      [assignment.student_id, assignment.course_id, marksValue]
+    );
+
+    await pool.query(
+      "INSERT INTO activity_log (faculty_id, student_id, course_id, new_marks) VALUES (?, ?, ?, ?)",
+      [assignment.faculty_id, assignment.student_id, assignment.course_id, marksValue]
+    );
+
+    res.json({
+      ok: true,
+      marksId: existingMark ? existingMark.id : null,
+      message: existingMark ? "Marks updated." : "Marks added."
+    });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to save marks.", error: error.message });
+  }
+});
+
 // ─── COURSE-FACULTY MAPPINGS ──────────────────────────────────
 // Only one mapping table: course_faculty_mapping(id, course_id, faculty_id)
+app.delete("/api/faculty/:facultyCode/students/:rollNo", async (req, res) => {
+  try {
+    const [[student]] = await pool.query(
+      `SELECT DISTINCT s.id, s.roll_no
+       FROM faculty f
+       JOIN course_faculty_mapping cfm ON cfm.faculty_id = f.id
+       JOIN courses c ON cfm.course_id = c.id
+       JOIN students s ON s.dept_id = c.dept_id AND s.sem_id = c.sem_id
+       WHERE f.faculty_code = ?
+         AND s.roll_no = ?
+       LIMIT 1`,
+      [req.params.facultyCode, req.params.rollNo]
+    );
+
+    if (!student) {
+      return res.status(403).json({
+        ok: false,
+        message: "This student is not related to this faculty's assigned courses."
+      });
+    }
+
+    await pool.query("DELETE FROM students WHERE id = ?", [student.id]);
+    res.json({ ok: true, message: "Student record deleted." });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to delete student.", error: error.message });
+  }
+});
+
 app.get("/api/mappings", async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -679,6 +861,43 @@ app.delete("/api/mappings/:id", async (req, res) => {
   }
 });
 
+app.post("/api/department-course-mappings", async (req, res) => {
+  const { deptId, courseId } = req.body;
+  if (!deptId || !courseId) {
+    return res.status(400).json({ ok: false, message: "Department and course are required." });
+  }
+
+  try {
+    await pool.query(
+      "UPDATE courses SET dept_id = ? WHERE id = ?",
+      [deptId, courseId]
+    );
+    res.json({ ok: true, message: "Department-course mapping saved." });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to save department-course mapping.", error: error.message });
+  }
+});
+
+app.post("/api/faculty-course-assignments", async (req, res) => {
+  const { facultyId, courseId } = req.body;
+  if (!facultyId || !courseId) {
+    return res.status(400).json({ ok: false, message: "Faculty and course are required." });
+  }
+
+  try {
+    const [result] = await pool.query(
+      "INSERT INTO course_faculty_mapping (course_id, faculty_id) VALUES (?, ?)",
+      [courseId, facultyId]
+    );
+    res.json({ ok: true, assignmentId: result.insertId, message: "Faculty-course assignment saved." });
+  } catch (error) {
+    if (isDuplicateError(error)) {
+      return res.status(409).json({ ok: false, message: "This faculty-course assignment already exists." });
+    }
+    res.status(500).json({ ok: false, message: "Failed to save faculty-course assignment.", error: error.message });
+  }
+});
+
 // Assignments alias (same as mappings for frontend compatibility)
 app.post("/api/assignments", async (req, res) => {
   const { facultyId, courseId } = req.body;
@@ -711,15 +930,35 @@ app.delete("/api/assignments/:id", async (req, res) => {
 // ─── MARKS ───────────────────────────────────────────────────
 // Column is "marks" not "marks_obtained"; PK is "id" not "marks_id"
 app.post("/api/marks", async (req, res) => {
-  const { studentId, courseId, marksObtained } = req.body;
-  if (!studentId || !courseId || marksObtained === undefined) {
+  const { studentId, rollNo, courseId, facultyId, marksObtained } = req.body;
+  if ((!studentId && !rollNo) || !courseId || marksObtained === undefined) {
     return res.status(400).json({ ok: false, message: "Student, course, and marks are required." });
   }
   try {
+    let resolvedStudentId = studentId;
+    if (!resolvedStudentId && rollNo) {
+      const [[student]] = await pool.query(
+        "SELECT id FROM students WHERE roll_no = ?",
+        [rollNo]
+      );
+      if (!student) {
+        return res.status(404).json({ ok: false, message: "Student roll number not found." });
+      }
+      resolvedStudentId = student.id;
+    }
+
     const [result] = await pool.query(
       "INSERT INTO marks (student_id, course_id, marks) VALUES (?, ?, ?)",
-      [studentId, courseId, marksObtained]
+      [resolvedStudentId, courseId, marksObtained]
     );
+
+    if (facultyId) {
+      await pool.query(
+        "INSERT INTO activity_log (faculty_id, student_id, course_id, new_marks) VALUES (?, ?, ?, ?)",
+        [facultyId, resolvedStudentId, courseId, marksObtained]
+      );
+    }
+
     res.json({ ok: true, marksId: result.insertId, message: "Marks added." });
   } catch (error) {
     if (isDuplicateError(error)) {
@@ -730,12 +969,25 @@ app.post("/api/marks", async (req, res) => {
 });
 
 app.put("/api/marks/:id", async (req, res) => {
-  const { marksObtained } = req.body;
+  const { marksObtained, facultyId } = req.body;
   try {
+    const [[mark]] = await pool.query(
+      "SELECT student_id, course_id FROM marks WHERE id = ?",
+      [req.params.id]
+    );
+
     await pool.query(
       "UPDATE marks SET marks = ? WHERE id = ?",
       [marksObtained, req.params.id]
     );
+
+    if (facultyId && mark) {
+      await pool.query(
+        "INSERT INTO activity_log (faculty_id, student_id, course_id, new_marks) VALUES (?, ?, ?, ?)",
+        [facultyId, mark.student_id, mark.course_id, marksObtained]
+      );
+    }
+
     res.json({ ok: true, message: "Marks updated." });
   } catch (error) {
     res.status(500).json({ ok: false, message: "Failed to update marks.", error: error.message });

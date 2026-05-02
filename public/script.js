@@ -17,13 +17,13 @@ const roles = {
     title: "Student Login",
     description: "View your profile, marks, grades, and GPA.",
     placeholder: "Enter roll number",
-    helper: "Sample student login: STU101 / student123"
+    helper: "Sample student login: 2024CSE001 / student123"
   },
   faculty: {
     title: "Faculty Login",
     description: "Manage courses, marks, and activity log.",
     placeholder: "Enter faculty code",
-    helper: "Sample faculty login: FAC301 / faculty123"
+    helper: "Sample faculty login: FAC001 / faculty123"
   }
 };
 
