@@ -1,7 +1,4 @@
-const Admin = window.AdminApp || {};
-const fetchJson = Admin.fetchJson;
-const renderTableBody = Admin.renderTableBody;
-const setStatus = Admin.setStatus || (() => {});
+// Use AdminApp globals — do NOT re-declare fetchJson/setStatus (already in admin-common.js)
 
 let gpaChartInstance = null;
 let breakdownChartInstance = null;
@@ -87,24 +84,28 @@ function renderCharts(data) {
 }
 
 async function loadOverview() {
-  try {
-    if (!fetchJson) throw new Error("AdminApp not loaded");
+  const _fetchJson = window.AdminApp?.fetchJson;
+  const _setStatus = window.AdminApp?.setStatus || (() => {});
 
-    const result = await fetchJson("/api/overview-data");
-    if (!result.ok) throw new Error(result.data.message);
+  try {
+    if (!_fetchJson) throw new Error("AdminApp not loaded");
+
+    const result = await _fetchJson("/api/overview-data");
+    if (!result.ok) throw new Error(result.data?.message || result.data?.error || "Server error");
 
     const data = result.data;
     const counts = data.counts || {};
 
-    document.getElementById("studentCount").textContent = counts.students || 0;
-    document.getElementById("facultyCount").textContent = counts.faculty || 0;
-    document.getElementById("courseCount").textContent = counts.courses || 0;
-    document.getElementById("departmentCount").textContent = counts.departments || 0;
+    document.getElementById("studentCount").textContent = counts.students ?? 0;
+    document.getElementById("facultyCount").textContent = counts.faculty ?? 0;
+    document.getElementById("courseCount").textContent = counts.courses ?? 0;
+    document.getElementById("departmentCount").textContent = counts.departments ?? 0;
 
     renderCharts(data);
 
   } catch (error) {
-    setStatus(error.message || "Error loading data", "error");
+    console.error("Dashboard load error:", error.message);
+    _setStatus("Failed to load dashboard: " + error.message, "error");
 
     renderCharts({
       counts: { students: 0, faculty: 0, courses: 0, departments: 0 },

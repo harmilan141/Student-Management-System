@@ -132,9 +132,16 @@ app.get("/api/overview-data", async (req, res) => {
     const [[coursesRow]]     = await pool.query("SELECT COUNT(*) AS cnt FROM courses");
     const [[departmentsRow]] = await pool.query("SELECT COUNT(*) AS cnt FROM departments");
 
-    const [results] = await pool.query(
-      "SELECT gpa FROM results ORDER BY generated_at DESC LIMIT 500"
-    );
+    // Safely fetch results — don't crash if table is empty or column missing
+    let results = [];
+    try {
+      const [rows] = await pool.query(
+        "SELECT gpa FROM results ORDER BY generated_at DESC LIMIT 500"
+      );
+      results = rows;
+    } catch (_) {
+      results = [];
+    }
 
     res.json({
       ok: true,
@@ -147,6 +154,7 @@ app.get("/api/overview-data", async (req, res) => {
       results
     });
   } catch (error) {
+    console.error("overview-data error:", error.message);
     res.status(500).json({ ok: false, message: "Failed to load overview data.", error: error.message });
   }
 });
