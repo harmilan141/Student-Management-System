@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Department Management</title>
-  <link rel="stylesheet" href="style.css?v=20260419d">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="departments">
   <div class="top-bar"></div>
@@ -15,15 +15,15 @@
         <h2>Admin Modules</h2>
       </div>
       <nav class="sidebar-nav">
-        <a class="sidebar-link" data-nav="overview" href="dashboard.html">Overview</a>
+        <a class="sidebar-link" data-nav="overview"    href="dashboard.html">Overview</a>
         <a class="sidebar-link" data-nav="departments" href="departments.html">Department Management</a>
-        <a class="sidebar-link" data-nav="semesters" href="semesters.html">Semester Management</a>
-        <a class="sidebar-link" data-nav="courses" href="courses.html">Course Management</a>
-        <a class="sidebar-link" data-nav="students" href="students.html">Student Management</a>
-        <a class="sidebar-link" data-nav="faculty" href="faculty.html">Faculty Management</a>
-        <a class="sidebar-link" data-nav="mappings" href="mappings.html">Course and Faculty Mapping</a>
-        <a class="sidebar-link" data-nav="marks" href="marks.html">Marks Entry</a>
-        <a class="sidebar-link" data-nav="results" href="results.html">Result Generation</a>
+        <a class="sidebar-link" data-nav="semesters"   href="semesters.html">Semester Management</a>
+        <a class="sidebar-link" data-nav="courses"     href="courses.html">Course Management</a>
+        <a class="sidebar-link" data-nav="students"    href="students.html">Student Management</a>
+        <a class="sidebar-link" data-nav="faculty"     href="faculty.html">Faculty Management</a>
+        <a class="sidebar-link" data-nav="mappings"    href="mappings.html">Course and Faculty Mapping</a>
+        <a class="sidebar-link" data-nav="marks"       href="marks.html">Marks Entry</a>
+        <a class="sidebar-link" data-nav="results"     href="results.html">Result Generation</a>
       </nav>
     </aside>
 
@@ -47,11 +47,11 @@
         <section class="card">
           <div class="panel-header">
             <h2>Add or Update Department</h2>
-            <p class="subtitle">Use a record ID only when updating an existing department.</p>
+            <p class="subtitle">Leave the ID field <strong>empty</strong> to add a new department. Fill it only to update an existing one.</p>
           </div>
           <form class="stack-form" id="departmentForm">
-            <label for="departmentId">Department Record ID</label>
-            <input id="departmentId" type="number" placeholder="Optional for update">
+            <label for="departmentId">Department Record ID <span style="color:#e05c5c;font-weight:400;font-size:0.85em;">(Leave EMPTY to ADD — enter ID only to UPDATE)</span></label>
+            <input id="departmentId" type="number" placeholder="Leave EMPTY to add new dept (fill only to update)">
 
             <label for="deptCode">Department Code</label>
             <input id="deptCode" type="text" placeholder="CSE" required>
@@ -80,7 +80,9 @@
                   <th>Name</th>
                 </tr>
               </thead>
-              <tbody id="departmentsTableBody"></tbody>
+              <tbody id="departmentsTableBody">
+                <tr><td colspan="3">Loading...</td></tr>
+              </tbody>
             </table>
           </div>
         </section>
@@ -88,7 +90,8 @@
     </section>
   </main>
 
-  <script src="admin-common.js?v=20260419d"></script>
-  <script src="departments.js?v=20260419d"></script>
+  <!-- NO ?v= cache-busting — load the actual current files -->
+  <script src="admin-common.js"></script>
+  <script src="departments.js"></script>
 </body>
 </html>

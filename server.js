@@ -45,6 +45,14 @@ const pool = mysql.createPool({
 app.use(express.json());
 app.use(express.static(publicDir));
 
+// ─── REQUEST LOGGER ──────────────────────────────────────────
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, req.body && Object.keys(req.body).length ? JSON.stringify(req.body) : "");
+  }
+  next();
+});
+
 // ─── HELPERS ─────────────────────────────────────────────────
 function hashPassword(password) {
   return crypto.createHash("sha256").update(password).digest("hex");
@@ -355,6 +363,7 @@ app.get("/api/departments", async (req, res) => {
     );
     res.json({ ok: true, departments: rows });
   } catch (error) {
+    console.error("GET /api/departments error:", error.message);
     res.status(500).json({ ok: false, message: "Failed to load departments.", error: error.message });
   }
 });
@@ -371,6 +380,7 @@ app.post("/api/departments", async (req, res) => {
     );
     res.json({ ok: true, deptId: result.insertId, message: "Department added." });
   } catch (error) {
+    console.error("POST /api/departments error:", error.message);
     if (isDuplicateError(error)) {
       return res.status(409).json({ ok: false, message: "Department code or name already exists." });
     }
@@ -380,13 +390,20 @@ app.post("/api/departments", async (req, res) => {
 
 app.put("/api/departments/:id", async (req, res) => {
   const { deptCode, deptName } = req.body;
+  if (!deptCode || !deptName) {
+    return res.status(400).json({ ok: false, message: "Department code and name are required." });
+  }
   try {
-    await pool.query(
+    const [result] = await pool.query(
       "UPDATE departments SET dept_code = ?, dept_name = ? WHERE id = ?",
       [deptCode.trim(), deptName.trim(), req.params.id]
     );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: "No department found with ID " + req.params.id + ". Leave the ID field empty to add a new department." });
+    }
     res.json({ ok: true, message: "Department updated." });
   } catch (error) {
+    console.error("PUT /api/departments error:", error.message);
     if (isDuplicateError(error)) {
       return res.status(409).json({ ok: false, message: "Department code or name already exists." });
     }
@@ -399,6 +416,7 @@ app.delete("/api/departments/:id", async (req, res) => {
     await pool.query("DELETE FROM departments WHERE id = ?", [req.params.id]);
     res.json({ ok: true, message: "Department deleted." });
   } catch (error) {
+    console.error("DELETE /api/departments error:", error.message);
     res.status(500).json({ ok: false, message: "Failed to delete department.", error: error.message });
   }
 });

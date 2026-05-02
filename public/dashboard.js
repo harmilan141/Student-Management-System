@@ -1,117 +1,97 @@
-// Use AdminApp globals — do NOT re-declare fetchJson/setStatus (already in admin-common.js)
+// dashboard.js — Admin Overview Page
+// Only handles stat counts and charts via /api/overview-data
+// Department CRUD lives in departments.js (departments.html)
 
-let gpaChartInstance = null;
-let breakdownChartInstance = null;
-
-function renderCharts(data) {
-  if (typeof Chart === "undefined") return;
-
-  const green = "#10b981", mint = "#6ee7b7", darkGreen = "#065f46";
-
-  const counts = data.counts || {
-    students: 0,
-    faculty: 0,
-    courses: 0,
-    departments: 0
-  };
-
-  // GPA CHART
-  const gpaEl = document.getElementById("gpaChart");
-  if (gpaEl) {
-    if (gpaChartInstance) gpaChartInstance.destroy();
-
-    const buckets = [0, 0, 0, 0, 0];
-
-    (data.results || []).forEach((r) => {
-      const g = Number(r.gpa) || 0;
-      if (g < 6) buckets[0]++;
-      else if (g < 7) buckets[1]++;
-      else if (g < 8) buckets[2]++;
-      else if (g < 9) buckets[3]++;
-      else buckets[4]++;
-    });
-
-    const hasAny = buckets.some(v => v > 0);
-
-    gpaChartInstance = new Chart(gpaEl.getContext("2d"), {
-      type: "bar",
-      data: {
-        labels: ["<6.0", "6.0–6.9", "7.0–7.9", "8.0–8.9", "9.0–10"],
-        datasets: [{
-          label: "Students",
-          data: hasAny ? buckets : [3, 5, 9, 12, 6],
-          backgroundColor: [mint, mint, green, green, darkGreen],
-          borderRadius: 8,
-          barThickness: 34
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } }
-      }
-    });
-  }
-
-  // BREAKDOWN CHART
-  const bEl = document.getElementById("breakdownChart");
-  if (bEl) {
-    if (breakdownChartInstance) breakdownChartInstance.destroy();
-
-    breakdownChartInstance = new Chart(bEl.getContext("2d"), {
-      type: "doughnut",
-      data: {
-        labels: ["Students", "Faculty", "Courses", "Departments"],
-        datasets: [{
-          data: [
-            counts.students,
-            counts.faculty,
-            counts.courses,
-            counts.departments
-          ],
-          backgroundColor: ["#10b981", "#34d399", "#6ee7b7", "#065f46"],
-          borderColor: "#fff",
-          borderWidth: 3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "65%"
-      }
-    });
-  }
-}
+const dashboardApp = window.AdminApp;
 
 async function loadOverview() {
-  const _fetchJson = window.AdminApp?.fetchJson;
-  const _setStatus = window.AdminApp?.setStatus || (() => {});
-
   try {
-    if (!_fetchJson) throw new Error("AdminApp not loaded");
+    const result = await dashboardApp.fetchJson("/api/overview-data");
+    if (!result.ok) {
+      throw new Error(result.data.message || "Unable to load overview data.");
+    }
 
-    const result = await _fetchJson("/api/overview-data");
-    if (!result.ok) throw new Error(result.data?.message || result.data?.error || "Server error");
+    const counts = result.data.counts || {};
 
-    const data = result.data;
-    const counts = data.counts || {};
+    // ── Stat cards ───────────────────────────────────────────
+    const studentCountEl    = document.getElementById("studentCount");
+    const facultyCountEl    = document.getElementById("facultyCount");
+    const courseCountEl     = document.getElementById("courseCount");
+    const departmentCountEl = document.getElementById("departmentCount");
 
-    document.getElementById("studentCount").textContent = counts.students ?? 0;
-    document.getElementById("facultyCount").textContent = counts.faculty ?? 0;
-    document.getElementById("courseCount").textContent = counts.courses ?? 0;
-    document.getElementById("departmentCount").textContent = counts.departments ?? 0;
+    if (studentCountEl)    studentCountEl.textContent    = counts.students    ?? 0;
+    if (facultyCountEl)    facultyCountEl.textContent    = counts.faculty     ?? 0;
+    if (courseCountEl)     courseCountEl.textContent     = counts.courses     ?? 0;
+    if (departmentCountEl) departmentCountEl.textContent = counts.departments ?? 0;
 
-    renderCharts(data);
+    // ── Charts ───────────────────────────────────────────────
+    const results = result.data.results || [];
+
+    // GPA Trend chart
+    const gpaCanvas = document.getElementById("gpaChart");
+    if (gpaCanvas && typeof Chart !== "undefined") {
+      const gpas   = results.map(r => parseFloat(r.gpa) || 0);
+      const labels = results.map((_, i) => "#" + (i + 1));
+
+      new Chart(gpaCanvas.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label:           "GPA",
+            data:            gpas,
+            borderColor:     "#4f8cff",
+            backgroundColor: "rgba(79,140,255,0.12)",
+            borderWidth:     2,
+            pointRadius:     2,
+            tension:         0.3,
+            fill:            true
+          }]
+        },
+        options: {
+          responsive:          true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales:  {
+            y: { min: 0, max: 10, ticks: { stepSize: 2 } },
+            x: { display: false }
+          }
+        }
+      });
+    }
+
+    // Records Breakdown chart
+    const breakdownCanvas = document.getElementById("breakdownChart");
+    if (breakdownCanvas && typeof Chart !== "undefined") {
+      new Chart(breakdownCanvas.getContext("2d"), {
+        type: "doughnut",
+        data: {
+          labels: ["Students", "Faculty", "Courses", "Departments"],
+          datasets: [{
+            data: [
+              counts.students    ?? 0,
+              counts.faculty     ?? 0,
+              counts.courses     ?? 0,
+              counts.departments ?? 0
+            ],
+            backgroundColor: ["#4f8cff", "#38c98b", "#f5a623", "#e05c5c"],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive:          true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "bottom" }
+          }
+        }
+      });
+    }
 
   } catch (error) {
-    console.error("Dashboard load error:", error.message);
-    _setStatus("Failed to load dashboard: " + error.message, "error");
-
-    renderCharts({
-      counts: { students: 0, faculty: 0, courses: 0, departments: 0 },
-      results: []
-    });
+    dashboardApp.setStatus("Error loading overview: " + error.message, "error");
   }
 }
 
+// Load on page ready
 loadOverview();
