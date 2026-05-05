@@ -51,7 +51,7 @@ CREATE TABLE semesters (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   sem_number INT          NOT NULL UNIQUE,
   sem_name   VARCHAR(50)  NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET =utf8mb4;
 
 -- -----------------------------------------------
 -- 4. courses
@@ -168,8 +168,49 @@ CREATE TABLE activity_log (
   FOREIGN KEY (course_id)  REFERENCES courses(id)  ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+CREATE TABLE faculty_student_mapping (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  faculty_id INT NOT NULL,
+  student_id INT NOT NULL,
+  assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_student_advisor (student_id),
+  FOREIGN KEY (faculty_id) REFERENCES faculty(id)  ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE student_course_enrollment (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL,
+  course_id INT NOT NULL,
+  enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_student_course_enroll (student_id, course_id),
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+  FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 -- -----------------------------------------------
 -- Verify creation
 -- -----------------------------------------------
 SELECT 'Tables created successfully!' AS status;
 SHOW TABLES;
+
+
+CREATE TABLE IF NOT EXISTS student_course_enrollment (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL,
+  course_id  INT NOT NULL,
+  enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_student_course_enroll (student_id, course_id),
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+  FOREIGN KEY (course_id)  REFERENCES courses(id)  ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS faculty_student_mapping (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  faculty_id INT NOT NULL,
+  student_id INT NOT NULL,
+  assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_student_advisor (student_id),
+  FOREIGN KEY (faculty_id) REFERENCES faculty(id)  ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

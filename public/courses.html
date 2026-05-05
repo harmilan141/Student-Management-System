@@ -32,7 +32,7 @@
         <div>
           <p class="institution-type">Administrator Panel</p>
           <h1>Course Management</h1>
-          <p class="institution-copy">Create courses with credits, semester, and maximum marks.</p>
+          <p class="institution-copy">Create courses with credits, semester, department, and maximum marks.</p>
         </div>
         <div class="admin-summary">
           <strong id="dashboardName">Administrator</strong>
@@ -61,6 +61,10 @@
 
             <label for="courseSemester">Semester</label>
             <select id="courseSemester" required></select>
+
+            <!-- Department dropdown — fetched from SQL via /api/lookups -->
+            <label for="courseDepartment">Department</label>
+            <select id="courseDepartment" required></select>
 
             <label for="courseMaxMarks">Max Marks</label>
             <input id="courseMaxMarks" type="number" min="1" value="100" required>

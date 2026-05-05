@@ -43,10 +43,9 @@ async function loadStudentPage() {
       roll_no: item.roll_no,
       student_name: item.student_name,
       dept_name: item.dept_name,
-      sem_number: item.sem_number,
-      assigned_faculty: item.assigned_faculty || "Not assigned"
+      sem_number: item.sem_number
     })),
-    ["student_id", "roll_no", "student_name", "dept_name", "sem_number", "assigned_faculty"],
+    ["student_id", "roll_no", "student_name", "dept_name", "sem_number"],
     "No students found."
   );
 }

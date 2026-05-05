@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Course Enrollment</title>
+  <link rel="stylesheet" href="style.css?v=20260419d">
+</head>
+<body data-page="enrollments">
+  <div class="top-bar"></div>
+  <main class="dashboard-layout">
+    <aside class="dashboard-sidebar card">
+      <div class="sidebar-brand">
+        <p class="institution-type">Navigation</p>
+        <h2>Admin Modules</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" data-nav="overview" href="dashboard.html">Overview</a>
+        <a class="sidebar-link" data-nav="departments" href="departments.html">Department Management</a>
+        <a class="sidebar-link" data-nav="semesters" href="semesters.html">Semester Management</a>
+        <a class="sidebar-link" data-nav="courses" href="courses.html">Course Management</a>
+        <a class="sidebar-link" data-nav="students" href="students.html">Student Management</a>
+        <a class="sidebar-link" data-nav="faculty" href="faculty.html">Faculty Management</a>
+        <a class="sidebar-link" data-nav="mappings" href="mappings.html">Course and Faculty Mapping</a>
+        <a class="sidebar-link" data-nav="enrollments" href="enrollments.html">Student Enrollment</a>
+        <a class="sidebar-link" data-nav="marks" href="marks.html">Marks Entry</a>
+        <a class="sidebar-link" data-nav="results" href="results.html">Result Generation</a>
+      </nav>
+    </aside>
+
+    <section class="dashboard-shell">
+      <section class="dashboard-header card">
+        <div>
+          <p class="institution-type">Administrator Panel</p>
+          <h1>Student Course Enrollment</h1>
+          <p class="institution-copy">Assign which courses each student is enrolled in for their semester.</p>
+        </div>
+        <div class="admin-summary">
+          <strong id="dashboardName">Administrator</strong>
+          <span id="dashboardEmail">-</span>
+          <button class="secondary-button" id="logoutButton" type="button">Logout</button>
+        </div>
+      </section>
+
+      <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
+
+      <section class="dashboard-grid two-column">
+
+        <!-- LEFT: Enroll form -->
+        <section class="card">
+          <div class="panel-header">
+            <h2>Enroll Student in Course</h2>
+            <p class="subtitle">Select a student, then choose a course to assign.</p>
+          </div>
+          <form class="stack-form" id="enrollForm">
+            <label for="enrollStudent">Student</label>
+            <select id="enrollStudent" required></select>
+
+            <label for="enrollSemesterFilter">Filter Courses by Semester</label>
+            <select id="enrollSemesterFilter">
+              <option value="">All Semesters</option>
+            </select>
+
+            <label for="enrollCourse">Course</label>
+            <select id="enrollCourse" required></select>
+
+            <button class="login-button" type="submit">Enroll Student</button>
+          </form>
+
+          <!-- Per-student enrolled courses -->
+          <div class="panel-spacing">
+            <div class="panel-header">
+              <h3>Enrolled Courses for Selected Student</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Semester</th>
+                    <th>Faculty</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="studentEnrollmentsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT: All enrollments overview -->
+        <section class="card">
+          <div class="panel-header">
+            <h2>All Enrollments</h2>
+            <p class="subtitle">Every student-course assignment at a glance.</p>
+          </div>
+
+          <!-- Filter bar -->
+          <section class="toolbar inline-toolbar" style="margin-bottom:1rem;">
+            <div class="toolbar-group">
+              <label for="overviewStudentFilter">Student</label>
+              <select id="overviewStudentFilter">
+                <option value="">All Students</option>
+              </select>
+            </div>
+            <div class="toolbar-group">
+              <label for="overviewSemFilter">Semester</label>
+              <select id="overviewSemFilter">
+                <option value="">All Semesters</option>
+              </select>
+            </div>
+            <div class="toolbar-actions">
+              <button class="secondary-button" id="overviewFilterBtn" type="button">Filter</button>
+            </div>
+          </section>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Roll No</th>
+                  <th>Student</th>
+                  <th>Course</th>
+                  <th>Semester</th>
+                  <th>Faculty</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="allEnrollmentsBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+      </section>
+    </section>
+  </main>
+
+  <script src="admin-common.js?v=20260419d"></script>
+  <script src="enrollments.js?v=20260419d"></script>
+</body>
+</html>

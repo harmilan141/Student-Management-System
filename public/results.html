@@ -22,6 +22,7 @@
         <a class="sidebar-link" data-nav="students" href="students.html">Student Management</a>
         <a class="sidebar-link" data-nav="faculty" href="faculty.html">Faculty Management</a>
         <a class="sidebar-link" data-nav="mappings" href="mappings.html">Course and Faculty Mapping</a>
+        <a class="sidebar-link" data-nav="enrollments" href="enrollments.html">Student Enrollment</a>
         <a class="sidebar-link" data-nav="marks" href="marks.html">Marks Entry</a>
         <a class="sidebar-link" data-nav="results" href="results.html">Result Generation</a>
       </nav>
@@ -50,8 +51,8 @@
             <p class="subtitle">Calls the stored procedure for GPA and pass/fail generation.</p>
           </div>
           <form class="stack-form" id="resultForm">
-            <label for="resultRollNo">Student Roll No</label>
-            <input id="resultRollNo" type="text" placeholder="STU101" required>
+            <label for="resultStudent">Student</label>
+            <select id="resultStudent" required></select>
 
             <label for="resultSemester">Semester</label>
             <select id="resultSemester" required></select>
@@ -74,6 +75,7 @@
                   <th>Semester</th>
                   <th>GPA</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="resultsTableBody"></tbody>

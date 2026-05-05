@@ -22,6 +22,7 @@
         <a class="sidebar-link" data-nav="students" href="students.html">Student Management</a>
         <a class="sidebar-link" data-nav="faculty" href="faculty.html">Faculty Management</a>
         <a class="sidebar-link" data-nav="mappings" href="mappings.html">Course and Faculty Mapping</a>
+        <a class="sidebar-link" data-nav="enrollments" href="enrollments.html">Student Enrollment</a>
         <a class="sidebar-link" data-nav="marks" href="marks.html">Marks Entry</a>
         <a class="sidebar-link" data-nav="results" href="results.html">Result Generation</a>
       </nav>
@@ -32,7 +33,7 @@
         <div>
           <p class="institution-type">Administrator Panel</p>
           <h1>Course and Faculty Mapping</h1>
-          <p class="institution-copy">Connect departments, courses, and faculty assignments.</p>
+          <p class="institution-copy">Connect departments, courses, faculty assignments, and faculty-student advisor links.</p>
         </div>
         <div class="admin-summary">
           <strong id="dashboardName">Administrator</strong>
@@ -43,6 +44,7 @@
 
       <p class="status-message" id="dashboardStatus" aria-live="polite"></p>
 
+      <!-- Row 1: Course & Faculty assignment -->
       <section class="dashboard-grid two-column">
         <section class="card">
           <div class="panel-header">
@@ -80,6 +82,46 @@
         </section>
       </section>
 
+      <!-- Row 2: Faculty-Student Mapping (NEW) -->
+      <section class="dashboard-grid two-column">
+        <section class="card">
+          <div class="panel-header">
+            <h2>Faculty–Student Advisor Mapping</h2>
+            <p class="subtitle">Assign a faculty member as an advisor/class teacher for a student.</p>
+          </div>
+          <form class="stack-form" id="facultyStudentForm">
+            <label for="advisorFaculty">Faculty (Advisor)</label>
+            <select id="advisorFaculty" required></select>
+
+            <label for="advisorStudent">Student</label>
+            <select id="advisorStudent" required></select>
+
+            <button class="login-button" type="submit">Assign Advisor</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="panel-header">
+            <h2>Current Advisor Assignments</h2>
+            <p class="subtitle">Faculty members assigned as student advisors.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Roll No</th>
+                  <th>Advisor Faculty</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="facultyStudentTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <!-- Row 3: Existing mapping tables -->
       <section class="dashboard-grid two-column">
         <section class="card">
           <div class="panel-header">

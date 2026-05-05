@@ -1,9 +1,25 @@
 // ────────────────────────────────────────────────────────────────
 //  server.js  — Student Management System
-//  Fixed to match actual database schema (database.sql)
-//  Real column names: id (not dept_id/student_id etc.), 
-//  marks (not marks_obtained), results (not semester_results),
-//  course_faculty_mapping (not faculty_course_assignment/department_course_mapping)
+//  Updated to use PL/SQL stored procedures for all business logic
+//
+//  PL/SQL objects used:
+//    PROCEDURES:
+//      sp_enroll_student         → add new student
+//      sp_add_faculty            → add new faculty
+//      sp_update_marks           → insert/update marks + auto-log + auto-result
+//      sp_calculate_and_store_result → regenerate one student's result
+//      sp_recalculate_all_results    → recalculate all results
+//      sp_get_student_transcript     → full student transcript
+//      sp_department_performance_report → department analytics
+//    FUNCTIONS (called inside SQL queries):
+//      calculate_gpa(student_id, sem_id)
+//      get_pass_fail(student_id, sem_id)
+//      get_grade_letter(percentage)
+//    TRIGGERS (fire automatically — no JS needed):
+//      trg_after_marks_insert            → recalcs result on insert
+//      trg_after_marks_update            → recalcs result on update
+//      trg_prevent_marks_above_max_*     → validation on marks
+//      trg_log_faculty_marks_update      → auto activity log on update
 // ────────────────────────────────────────────────────────────────
 
 const path    = require("path");
@@ -78,9 +94,6 @@ app.get("/api/health", async (req, res) => {
 });
 
 // ─── LOGIN ───────────────────────────────────────────────────
-// DB schema: admins(id, name, email, password, admin_username, password_hash)
-//            students(id, roll_no, student_name, email, password, ...)
-//            faculty(id, faculty_code, faculty_name, email, password, ...)
 app.post("/api/login", async (req, res) => {
   const { userId, password, role } = req.body;
 
@@ -132,7 +145,6 @@ app.post("/api/login", async (req, res) => {
 });
 
 // ─── OVERVIEW DATA ───────────────────────────────────────────
-// Table name is "results" not "semester_results"; gpa column exists
 app.get("/api/overview-data", async (req, res) => {
   try {
     const [[studentsRow]]    = await pool.query("SELECT COUNT(*) AS cnt FROM students");
@@ -140,7 +152,6 @@ app.get("/api/overview-data", async (req, res) => {
     const [[coursesRow]]     = await pool.query("SELECT COUNT(*) AS cnt FROM courses");
     const [[departmentsRow]] = await pool.query("SELECT COUNT(*) AS cnt FROM departments");
 
-    // Safely fetch results — don't crash if table is empty or column missing
     let results = [];
     try {
       const [rows] = await pool.query(
@@ -168,29 +179,25 @@ app.get("/api/overview-data", async (req, res) => {
 });
 
 // ─── DASHBOARD DATA ──────────────────────────────────────────
-// All PKs are "id"; joined tables use dept_id, sem_id etc as FK
-// No department_course_mapping or faculty_course_assignment tables
-// Use course_faculty_mapping instead
+// Uses PL/SQL functions get_grade_letter() and calculate_gpa() inline in queries
 app.get("/api/dashboard-data", async (req, res) => {
   try {
     const { search, departmentId } = req.query;
 
-    // Students
     let studentSql = `
       SELECT s.id AS student_id, s.roll_no, s.student_name,
              d.dept_name, sm.sem_number, s.batch,
-             COALESCE(MAX(f.faculty_name), 'Not assigned') AS assigned_faculty
+             COALESCE(
+               (SELECT GROUP_CONCAT(DISTINCT f2.faculty_name ORDER BY f2.faculty_name SEPARATOR ', ')
+                FROM student_course_enrollment sce2
+                JOIN course_faculty_mapping cfm2 ON cfm2.course_id = sce2.course_id
+                JOIN faculty f2 ON f2.id = cfm2.faculty_id
+                WHERE sce2.student_id = s.id),
+               'Not assigned'
+             ) AS assigned_faculty
       FROM students s
       JOIN departments d  ON s.dept_id = d.id
       JOIN semesters  sm  ON s.sem_id  = sm.id
-      LEFT JOIN (
-        SELECT dept_id, sem_id, MIN(id) AS course_id
-        FROM courses
-        GROUP BY dept_id, sem_id
-      ) first_course ON first_course.dept_id = s.dept_id
-                    AND first_course.sem_id = s.sem_id
-      LEFT JOIN course_faculty_mapping cfm ON cfm.course_id = first_course.course_id
-      LEFT JOIN faculty f ON cfm.faculty_id = f.id
       WHERE 1=1
     `;
     const studentParams = [];
@@ -203,7 +210,7 @@ app.get("/api/dashboard-data", async (req, res) => {
       studentSql += " AND s.dept_id = ?";
       studentParams.push(departmentId);
     }
-    studentSql += " GROUP BY s.id, s.roll_no, s.student_name, d.dept_name, sm.sem_number, s.batch ORDER BY s.id";
+    studentSql += " ORDER BY s.id";
 
     const [students] = await pool.query(studentSql, studentParams);
 
@@ -217,7 +224,7 @@ app.get("/api/dashboard-data", async (req, res) => {
 
     const [courses] = await pool.query(`
       SELECT c.id AS course_id, c.course_code, c.course_name,
-             c.credits, sm.sem_number
+             c.credits, c.sem_id, sm.sem_number
       FROM courses c
       JOIN semesters sm ON c.sem_id = sm.id
       ORDER BY c.id
@@ -231,7 +238,6 @@ app.get("/api/dashboard-data", async (req, res) => {
       "SELECT id AS sem_id, sem_number, sem_name FROM semesters ORDER BY sem_number"
     );
 
-    // course_faculty_mapping is the only mapping table
     const [mappings] = await pool.query(`
       SELECT cfm.id AS mapping_id,
              f.id AS faculty_id, f.faculty_code, f.faculty_name,
@@ -254,26 +260,20 @@ app.get("/api/dashboard-data", async (req, res) => {
       ORDER BY d.dept_code, c.course_code
     `);
 
+    // ── Use PL/SQL function get_grade_letter() for grade calculation
     const [marks] = await pool.query(`
       SELECT m.id AS marks_id, s.roll_no, s.student_name,
              c.course_code, c.course_name,
              COALESCE(f.faculty_code, 'Unassigned') AS faculty_code,
              COALESCE(f.faculty_name, 'Unassigned') AS faculty_name,
              m.marks AS marks_obtained, m.max_marks,
-             CASE
-               WHEN m.marks >= 90 THEN 'A+'
-               WHEN m.marks >= 80 THEN 'A'
-               WHEN m.marks >= 70 THEN 'B'
-               WHEN m.marks >= 60 THEN 'C'
-               WHEN m.marks >= 50 THEN 'D'
-               ELSE 'F'
-             END AS grade,
+             get_grade_letter(ROUND((m.marks / m.max_marks) * 100, 2)) AS grade,
              CASE
                WHEN m.marks >= 90 THEN 10
                WHEN m.marks >= 80 THEN 9
                WHEN m.marks >= 70 THEN 8
                WHEN m.marks >= 60 THEN 7
-               WHEN m.marks >= 50 THEN 6
+               WHEN m.marks >= 40 THEN 6
                ELSE 0
              END AS grade_point
       FROM marks m
@@ -285,14 +285,22 @@ app.get("/api/dashboard-data", async (req, res) => {
       LIMIT 200
     `);
 
+    // LEFT JOIN so students without a generated result still appear (status = PENDING).
+    // This allows admins to see who still needs result generation.
     const [results] = await pool.query(`
       SELECT r.id AS result_id, s.roll_no, s.student_name,
-             sm.sem_number, r.gpa, r.pass_fail_status AS status
-      FROM results r
-      JOIN students  s  ON r.student_id = s.id
-      JOIN semesters sm ON r.sem_id     = sm.id
-      ORDER BY r.id DESC
-      LIMIT 200
+             sm.sem_number, r.gpa,
+             COALESCE(r.pass_fail_status, 'PENDING') AS status
+      FROM students s
+      CROSS JOIN semesters sm
+      LEFT JOIN results r ON r.student_id = s.id AND r.sem_id = sm.id
+      WHERE EXISTS (
+        SELECT 1 FROM marks m
+        JOIN courses c ON m.course_id = c.id
+        WHERE m.student_id = s.id AND c.sem_id = sm.id
+      )
+      ORDER BY r.id DESC, s.roll_no ASC, sm.sem_number ASC
+      LIMIT 500
     `);
 
     const [activityLogs] = await pool.query(`
@@ -316,7 +324,7 @@ app.get("/api/dashboard-data", async (req, res) => {
       mappings,
       departmentCourseMappings,
       facultyCourseAssignments: mappings,
-      assignments: mappings, // alias for frontend compatibility
+      assignments: mappings,
       marks,
       results,
       activityLogs
@@ -337,7 +345,7 @@ app.get("/api/lookups", async (req, res) => {
     );
     const [courses] = await pool.query(`
       SELECT c.id AS course_id, c.course_code, c.course_name,
-             c.credits, sm.sem_number
+             c.credits, c.sem_id, sm.sem_number
       FROM courses c
       JOIN semesters sm ON c.sem_id = sm.id
       ORDER BY c.course_code
@@ -363,7 +371,6 @@ app.get("/api/departments", async (req, res) => {
     );
     res.json({ ok: true, departments: rows });
   } catch (error) {
-    console.error("GET /api/departments error:", error.message);
     res.status(500).json({ ok: false, message: "Failed to load departments.", error: error.message });
   }
 });
@@ -380,7 +387,6 @@ app.post("/api/departments", async (req, res) => {
     );
     res.json({ ok: true, deptId: result.insertId, message: "Department added." });
   } catch (error) {
-    console.error("POST /api/departments error:", error.message);
     if (isDuplicateError(error)) {
       return res.status(409).json({ ok: false, message: "Department code or name already exists." });
     }
@@ -399,11 +405,10 @@ app.put("/api/departments/:id", async (req, res) => {
       [deptCode.trim(), deptName.trim(), req.params.id]
     );
     if (result.affectedRows === 0) {
-      return res.status(404).json({ ok: false, message: "No department found with ID " + req.params.id + ". Leave the ID field empty to add a new department." });
+      return res.status(404).json({ ok: false, message: "No department found with ID " + req.params.id });
     }
     res.json({ ok: true, message: "Department updated." });
   } catch (error) {
-    console.error("PUT /api/departments error:", error.message);
     if (isDuplicateError(error)) {
       return res.status(409).json({ ok: false, message: "Department code or name already exists." });
     }
@@ -416,7 +421,6 @@ app.delete("/api/departments/:id", async (req, res) => {
     await pool.query("DELETE FROM departments WHERE id = ?", [req.params.id]);
     res.json({ ok: true, message: "Department deleted." });
   } catch (error) {
-    console.error("DELETE /api/departments error:", error.message);
     res.status(500).json({ ok: false, message: "Failed to delete department.", error: error.message });
   }
 });
@@ -533,6 +537,7 @@ app.delete("/api/courses/:id", async (req, res) => {
 });
 
 // ─── STUDENTS ────────────────────────────────────────────────
+// Uses PL/SQL: sp_enroll_student — validates dept/sem, inserts, returns new ID
 app.post("/api/students", async (req, res) => {
   const { rollNo, studentName, email, deptId, semId, batch, password } = req.body;
 
@@ -541,17 +546,27 @@ app.post("/api/students", async (req, res) => {
   }
 
   try {
-    const [result] = await pool.query(
-      `INSERT INTO students (roll_no, student_name, email, password, password_hash, dept_id, sem_id, batch)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [rollNo, studentName, email || null, password, hashPassword(password), deptId, semId, batch || '']
+    // Look up dept_code and sem_number from IDs (sp_enroll_student uses codes, not IDs)
+    const [[dept]] = await pool.query("SELECT dept_code FROM departments WHERE id = ?", [deptId]);
+    const [[sem]]  = await pool.query("SELECT sem_number FROM semesters WHERE id = ?", [semId]);
+
+    if (!dept) return res.status(400).json({ ok: false, message: "Invalid department." });
+    if (!sem)  return res.status(400).json({ ok: false, message: "Invalid semester." });
+
+    // CALL sp_enroll_student — the procedure handles validation and insert
+    await pool.query(
+      `CALL sp_enroll_student(?, ?, ?, ?, ?, ?, ?, ?, @new_id)`,
+      [rollNo, studentName, email || null, password, hashPassword(password),
+       dept.dept_code, sem.sem_number, batch || ""]
     );
-    res.json({ ok: true, studentId: result.insertId, message: "Student added." });
+
+    const [[{ new_id }]] = await pool.query("SELECT @new_id AS new_id");
+    res.json({ ok: true, studentId: new_id, message: "Student added." });
   } catch (error) {
     if (isDuplicateError(error)) {
       return res.status(409).json({ ok: false, message: "A student with this roll number or email already exists." });
     }
-    res.status(500).json({ ok: false, message: "Failed to add student.", error: error.message });
+    res.status(500).json({ ok: false, message: error.message || "Failed to add student." });
   }
 });
 
@@ -561,7 +576,7 @@ app.put("/api/students/:id", async (req, res) => {
   try {
     let sql = `UPDATE students SET roll_no = ?, student_name = ?, email = ?,
                dept_id = ?, sem_id = ?, batch = ?`;
-    const params = [rollNo, studentName, email || null, deptId, semId, batch || ''];
+    const params = [rollNo, studentName, email || null, deptId, semId, batch || ""];
 
     if (password) {
       sql += ", password = ?, password_hash = ?";
@@ -587,7 +602,7 @@ app.delete("/api/students/:id", async (req, res) => {
   }
 });
 
-// Student profile for user-dashboard
+// Student profile — uses sp_get_student_transcript for marks/grades
 app.get("/api/student/:rollNo", async (req, res) => {
   try {
     const [studentRows] = await pool.query(
@@ -615,23 +630,11 @@ app.get("/api/student/:rollNo", async (req, res) => {
       [student.id]
     );
 
-    const [marks] = await pool.query(
-      `SELECT m.id, m.marks, m.max_marks, c.course_name, c.course_code,
-              ROUND((m.marks / m.max_marks) * 100, 2) AS percentage,
-              CASE
-                WHEN m.marks >= 90 THEN 'A+'
-                WHEN m.marks >= 80 THEN 'A'
-                WHEN m.marks >= 70 THEN 'B'
-                WHEN m.marks >= 60 THEN 'C'
-                WHEN m.marks >= 50 THEN 'D'
-                ELSE 'F'
-              END AS grade
-       FROM marks m
-       JOIN courses c ON m.course_id = c.id
-       WHERE m.student_id = ?
-       ORDER BY c.course_code`,
-      [student.id]
-    );
+    // ── Use PL/SQL: sp_get_student_transcript for full marks with grades
+    await pool.query("CALL sp_get_student_transcript(?)", [student.id]);
+    const [transcriptRows] = await pool.query("CALL sp_get_student_transcript(?)", [student.id]);
+    // mysql2 returns [resultSet, okPacket] for CALL; transcriptRows[0] is the actual rows
+    const marks = Array.isArray(transcriptRows[0]) ? transcriptRows[0] : transcriptRows;
 
     res.json({ ok: true, student, results, marks });
   } catch (error) {
@@ -640,6 +643,7 @@ app.get("/api/student/:rollNo", async (req, res) => {
 });
 
 // ─── FACULTY ─────────────────────────────────────────────────
+// Uses PL/SQL: sp_add_faculty — validates dept, inserts, returns new ID
 app.post("/api/faculty", async (req, res) => {
   const { facultyCode, facultyName, email, deptId, password } = req.body;
 
@@ -648,17 +652,22 @@ app.post("/api/faculty", async (req, res) => {
   }
 
   try {
-    const [result] = await pool.query(
-      `INSERT INTO faculty (faculty_code, faculty_name, email, password, password_hash, dept_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [facultyCode, facultyName, email || null, password, hashPassword(password), deptId]
+    const [[dept]] = await pool.query("SELECT dept_code FROM departments WHERE id = ?", [deptId]);
+    if (!dept) return res.status(400).json({ ok: false, message: "Invalid department." });
+
+    // CALL sp_add_faculty — validates dept and inserts
+    await pool.query(
+      `CALL sp_add_faculty(?, ?, ?, ?, ?, ?, @new_id)`,
+      [facultyCode, facultyName, email || null, password, hashPassword(password), dept.dept_code]
     );
-    res.json({ ok: true, facultyId: result.insertId, message: "Faculty added." });
+
+    const [[{ new_id }]] = await pool.query("SELECT @new_id AS new_id");
+    res.json({ ok: true, facultyId: new_id, message: "Faculty added." });
   } catch (error) {
     if (isDuplicateError(error)) {
       return res.status(409).json({ ok: false, message: "Faculty with this code or email already exists." });
     }
-    res.status(500).json({ ok: false, message: "Failed to add faculty.", error: error.message });
+    res.status(500).json({ ok: false, message: error.message || "Failed to add faculty." });
   }
 });
 
@@ -693,7 +702,7 @@ app.delete("/api/faculty/:id", async (req, res) => {
   }
 });
 
-// Faculty profile for user-dashboard
+// Faculty profile
 app.get("/api/faculty/:facultyCode", async (req, res) => {
   try {
     const [facultyRows] = await pool.query(
@@ -733,10 +742,12 @@ app.get("/api/faculty/:facultyCode", async (req, res) => {
       [faculty.id]
     );
 
+    // ── Use PL/SQL function get_grade_letter() for grade column
     const [studentMarks] = await pool.query(
       `SELECT s.roll_no, s.student_name,
               c.id AS course_id, c.course_code, c.course_name,
-              m.id AS marks_id, m.marks, m.max_marks, m.updated_at
+              m.id AS marks_id, m.marks, m.max_marks, m.updated_at,
+              get_grade_letter(ROUND((m.marks / m.max_marks) * 100, 2)) AS grade
        FROM course_faculty_mapping cfm
        JOIN courses c ON cfm.course_id = c.id
        JOIN students s ON s.dept_id = c.dept_id AND s.sem_id = c.sem_id
@@ -752,6 +763,8 @@ app.get("/api/faculty/:facultyCode", async (req, res) => {
   }
 });
 
+// Faculty marks entry
+// Uses PL/SQL: sp_update_marks — authorization check + save + auto-log + auto-result
 app.post("/api/faculty/:facultyCode/marks", async (req, res) => {
   const { rollNo, courseId, marksObtained } = req.body;
   const marksValue = Number(marksObtained);
@@ -764,55 +777,44 @@ app.post("/api/faculty/:facultyCode/marks", async (req, res) => {
   }
 
   try {
-    const [[assignment]] = await pool.query(
-      `SELECT f.id AS faculty_id, s.id AS student_id, c.id AS course_id
-       FROM faculty f
-       JOIN course_faculty_mapping cfm ON cfm.faculty_id = f.id
-       JOIN courses c ON cfm.course_id = c.id
-       JOIN students s ON s.dept_id = c.dept_id AND s.sem_id = c.sem_id
-       WHERE f.faculty_code = ?
-         AND s.roll_no = ?
-         AND c.id = ?
-       LIMIT 1`,
-      [req.params.facultyCode, rollNo, courseId]
+    // Look up faculty ID and student ID for sp_update_marks
+    const [[faculty]] = await pool.query(
+      "SELECT id AS faculty_id FROM faculty WHERE faculty_code = ? LIMIT 1",
+      [req.params.facultyCode]
     );
-
-    if (!assignment) {
-      return res.status(403).json({
-        ok: false,
-        message: "This student is not assigned to this faculty for the selected course."
-      });
+    if (!faculty) {
+      return res.status(404).json({ ok: false, message: "Faculty not found." });
     }
 
-    const [[existingMark]] = await pool.query(
-      "SELECT id FROM marks WHERE student_id = ? AND course_id = ?",
-      [assignment.student_id, assignment.course_id]
+    const [[student]] = await pool.query(
+      "SELECT id AS student_id FROM students WHERE roll_no = ? LIMIT 1",
+      [rollNo]
     );
+    if (!student) {
+      return res.status(404).json({ ok: false, message: "Student not found." });
+    }
 
+    // CALL sp_update_marks:
+    //   • Checks faculty is authorised for this course
+    //   • Inserts or updates marks
+    //   • Logs to activity_log
+    //   • Calls sp_calculate_and_store_result automatically
     await pool.query(
-      `INSERT INTO marks (student_id, course_id, marks)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE marks = VALUES(marks)`,
-      [assignment.student_id, assignment.course_id, marksValue]
+      "CALL sp_update_marks(?, ?, ?, ?)",
+      [faculty.faculty_id, student.student_id, courseId, marksValue]
     );
 
-    await pool.query(
-      "INSERT INTO activity_log (faculty_id, student_id, course_id, new_marks) VALUES (?, ?, ?, ?)",
-      [assignment.faculty_id, assignment.student_id, assignment.course_id, marksValue]
-    );
-
-    res.json({
-      ok: true,
-      marksId: existingMark ? existingMark.id : null,
-      message: existingMark ? "Marks updated." : "Marks added."
-    });
+    res.json({ ok: true, message: "Marks saved." });
   } catch (error) {
+    // PL/SQL SIGNAL errors arrive as ER_SIGNAL_EXCEPTION
+    if (error.code === "ER_SIGNAL_EXCEPTION") {
+      return res.status(403).json({ ok: false, message: error.message });
+    }
     res.status(500).json({ ok: false, message: "Failed to save marks.", error: error.message });
   }
 });
 
-// ─── COURSE-FACULTY MAPPINGS ──────────────────────────────────
-// Only one mapping table: course_faculty_mapping(id, course_id, faculty_id)
+// ─── DELETE STUDENT BY FACULTY ───────────────────────────────
 app.delete("/api/faculty/:facultyCode/students/:rollNo", async (req, res) => {
   try {
     const [[student]] = await pool.query(
@@ -841,6 +843,7 @@ app.delete("/api/faculty/:facultyCode/students/:rollNo", async (req, res) => {
   }
 });
 
+// ─── COURSE-FACULTY MAPPINGS ──────────────────────────────────
 app.get("/api/mappings", async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -892,12 +895,8 @@ app.post("/api/department-course-mappings", async (req, res) => {
   if (!deptId || !courseId) {
     return res.status(400).json({ ok: false, message: "Department and course are required." });
   }
-
   try {
-    await pool.query(
-      "UPDATE courses SET dept_id = ? WHERE id = ?",
-      [deptId, courseId]
-    );
+    await pool.query("UPDATE courses SET dept_id = ? WHERE id = ?", [deptId, courseId]);
     res.json({ ok: true, message: "Department-course mapping saved." });
   } catch (error) {
     res.status(500).json({ ok: false, message: "Failed to save department-course mapping.", error: error.message });
@@ -909,7 +908,6 @@ app.post("/api/faculty-course-assignments", async (req, res) => {
   if (!facultyId || !courseId) {
     return res.status(400).json({ ok: false, message: "Faculty and course are required." });
   }
-
   try {
     const [result] = await pool.query(
       "INSERT INTO course_faculty_mapping (course_id, faculty_id) VALUES (?, ?)",
@@ -924,7 +922,6 @@ app.post("/api/faculty-course-assignments", async (req, res) => {
   }
 });
 
-// Assignments alias (same as mappings for frontend compatibility)
 app.post("/api/assignments", async (req, res) => {
   const { facultyId, courseId } = req.body;
   if (!facultyId || !courseId) {
@@ -954,68 +951,57 @@ app.delete("/api/assignments/:id", async (req, res) => {
 });
 
 // ─── MARKS ───────────────────────────────────────────────────
-// Column is "marks" not "marks_obtained"; PK is "id" not "marks_id"
+// Uses PL/SQL: sp_update_marks — authorization + save + auto-log + auto-result
+// The triggers trg_after_marks_insert / trg_after_marks_update also fire
+// automatically to recalculate results.
 app.post("/api/marks", async (req, res) => {
   const { studentId, rollNo, courseId, facultyId, marksObtained } = req.body;
   if ((!studentId && !rollNo) || !courseId || marksObtained === undefined) {
     return res.status(400).json({ ok: false, message: "Student, course, and marks are required." });
   }
+
   try {
     let resolvedStudentId = studentId;
     if (!resolvedStudentId && rollNo) {
-      const [[student]] = await pool.query(
-        "SELECT id FROM students WHERE roll_no = ?",
-        [rollNo]
-      );
-      if (!student) {
-        return res.status(404).json({ ok: false, message: "Student roll number not found." });
-      }
+      const [[student]] = await pool.query("SELECT id FROM students WHERE roll_no = ?", [rollNo]);
+      if (!student) return res.status(404).json({ ok: false, message: "Student roll number not found." });
       resolvedStudentId = student.id;
     }
 
+    // Admin marks entry — always use direct INSERT/UPDATE (no faculty auth check).
+    // sp_update_marks enforces course-faculty mapping which is only for faculty portal.
+    // Triggers trg_after_marks_insert / trg_after_marks_update fire automatically
+    // to recalculate the student's result.
     const [result] = await pool.query(
-      "INSERT INTO marks (student_id, course_id, marks) VALUES (?, ?, ?)",
-      [resolvedStudentId, courseId, marksObtained]
+      "INSERT INTO marks (student_id, course_id, marks) VALUES (?, ?, ?)" +
+      " ON DUPLICATE KEY UPDATE marks = VALUES(marks)",
+      [resolvedStudentId, courseId, Number(marksObtained)]
     );
-
-    if (facultyId) {
-      await pool.query(
-        "INSERT INTO activity_log (faculty_id, student_id, course_id, new_marks) VALUES (?, ?, ?, ?)",
-        [facultyId, resolvedStudentId, courseId, marksObtained]
-      );
-    }
-
-    res.json({ ok: true, marksId: result.insertId, message: "Marks added." });
+    res.json({ ok: true, marksId: result.insertId || null, message: "Marks added." });
   } catch (error) {
     if (isDuplicateError(error)) {
       return res.status(409).json({ ok: false, message: "Marks for this student and course already exist." });
+    }
+    if (error.code === "ER_SIGNAL_EXCEPTION") {
+      return res.status(403).json({ ok: false, message: error.message });
     }
     res.status(500).json({ ok: false, message: "Failed to add marks.", error: error.message });
   }
 });
 
 app.put("/api/marks/:id", async (req, res) => {
-  const { marksObtained, facultyId } = req.body;
+  const { marksObtained } = req.body;
   try {
-    const [[mark]] = await pool.query(
-      "SELECT student_id, course_id FROM marks WHERE id = ?",
-      [req.params.id]
-    );
-
-    await pool.query(
-      "UPDATE marks SET marks = ? WHERE id = ?",
-      [marksObtained, req.params.id]
-    );
-
-    if (facultyId && mark) {
-      await pool.query(
-        "INSERT INTO activity_log (faculty_id, student_id, course_id, new_marks) VALUES (?, ?, ?, ?)",
-        [facultyId, mark.student_id, mark.course_id, marksObtained]
-      );
-    }
+    // Admin update — always use direct UPDATE (no faculty auth check).
+    // sp_update_marks enforces course-faculty mapping which is only for faculty portal.
+    await pool.query("UPDATE marks SET marks = ? WHERE id = ?", [Number(marksObtained), req.params.id]);
+    // trg_after_marks_update fires automatically — recalculates result
 
     res.json({ ok: true, message: "Marks updated." });
   } catch (error) {
+    if (error.code === "ER_SIGNAL_EXCEPTION") {
+      return res.status(403).json({ ok: false, message: error.message });
+    }
     res.status(500).json({ ok: false, message: "Failed to update marks.", error: error.message });
   }
 });
@@ -1030,42 +1016,51 @@ app.delete("/api/marks/:id", async (req, res) => {
 });
 
 // ─── RESULTS ─────────────────────────────────────────────────
-// Table is "results" not "semester_results"; PK is "id" not "result_id"
+// Uses PL/SQL: sp_calculate_and_store_result — replaces all JS GPA/status logic
 app.post("/api/results/generate", async (req, res) => {
-  const { studentId, semId } = req.body;
-  if (!studentId || !semId) {
+  const { studentId, rollNo, semId } = req.body;
+
+  if ((!studentId && !rollNo) || !semId) {
     return res.status(400).json({ ok: false, message: "Student and semester are required." });
   }
-  try {
-    // Calculate GPA from marks
-    const [marksRows] = await pool.query(
-      `SELECT m.marks, m.max_marks, c.credits
-       FROM marks m
-       JOIN courses c ON m.course_id = c.id
-       WHERE m.student_id = ? AND c.sem_id = ?`,
-      [studentId, semId]
-    );
 
-    if (!marksRows.length) {
-      return res.status(400).json({ ok: false, message: "No marks found for this student and semester." });
+  try {
+    let resolvedStudentId = studentId;
+
+    if (!resolvedStudentId && rollNo) {
+      const [[student]] = await pool.query("SELECT id FROM students WHERE roll_no = ?", [rollNo]);
+      if (!student) return res.status(404).json({ ok: false, message: "Student not found." });
+      resolvedStudentId = student.id;
     }
 
-    const totalCredits = marksRows.reduce((sum, r) => sum + r.credits, 0);
-    const weightedGpa  = marksRows.reduce((sum, r) => sum + (r.marks / r.max_marks) * 10 * r.credits, 0);
-    const gpa          = totalCredits > 0 ? (weightedGpa / totalCredits).toFixed(2) : 0;
-    const minMarks     = Math.min(...marksRows.map(r => r.marks));
-    const status       = minMarks >= 40 ? "PASS" : "FAIL";
-
+    // CALL sp_calculate_and_store_result:
+    //   • Calls calculate_gpa() and get_pass_fail() internally
+    //   • Inserts/updates the results table
+    //   • Updates student_cgpa table
     await pool.query(
-      `INSERT INTO results (student_id, sem_id, gpa, pass_fail_status)
-       VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE gpa = VALUES(gpa), pass_fail_status = VALUES(pass_fail_status)`,
-      [studentId, semId, gpa, status]
+      "CALL sp_calculate_and_store_result(?, ?)",
+      [resolvedStudentId, semId]
     );
 
-    res.json({ ok: true, message: "Result generated.", gpa, status });
+    // Fetch the generated result to return to client
+    const [[result]] = await pool.query(
+      "SELECT gpa, pass_fail_status AS status FROM results WHERE student_id = ? AND sem_id = ?",
+      [resolvedStudentId, semId]
+    );
+
+    res.json({ ok: true, message: "Result generated.", gpa: result?.gpa, status: result?.status });
   } catch (error) {
     res.status(500).json({ ok: false, message: "Failed to generate result.", error: error.message });
+  }
+});
+
+// ── Recalculate ALL results at once (uses sp_recalculate_all_results)
+app.post("/api/results/recalculate-all", async (req, res) => {
+  try {
+    await pool.query("CALL sp_recalculate_all_results()");
+    res.json({ ok: true, message: "All results recalculated successfully." });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to recalculate results.", error: error.message });
   }
 });
 
@@ -1078,19 +1073,32 @@ app.delete("/api/results/:id", async (req, res) => {
   }
 });
 
+// ─── DEPARTMENT PERFORMANCE REPORT ───────────────────────────
+// Uses PL/SQL: sp_department_performance_report
+app.get("/api/departments/:id/report", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "CALL sp_department_performance_report(?)",
+      [req.params.id]
+    );
+    // mysql2 CALL returns [resultRows, okPacket]; rows[0] is the result set
+    res.json({ ok: true, report: Array.isArray(rows[0]) ? rows[0] : rows });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to load department report.", error: error.message });
+  }
+});
+
 // ─── CGPA ────────────────────────────────────────────────────
+// CGPA is now maintained automatically by sp_calculate_and_store_result.
+// This endpoint is kept for manual overrides only.
 app.post("/api/cgpa", async (req, res) => {
   const { studentRoll, cgpa } = req.body;
   if (!studentRoll || cgpa === undefined) {
     return res.status(400).json({ ok: false, message: "Student roll and CGPA are required." });
   }
   try {
-    const [[student]] = await pool.query(
-      "SELECT id FROM students WHERE roll_no = ?", [studentRoll]
-    );
-    if (!student) {
-      return res.status(404).json({ ok: false, message: "Student not found." });
-    }
+    const [[student]] = await pool.query("SELECT id FROM students WHERE roll_no = ?", [studentRoll]);
+    if (!student) return res.status(404).json({ ok: false, message: "Student not found." });
 
     await pool.query(
       `INSERT INTO student_cgpa (student_id, cgpa)
@@ -1101,6 +1109,153 @@ app.post("/api/cgpa", async (req, res) => {
     res.json({ ok: true, message: "CGPA saved." });
   } catch (error) {
     res.status(500).json({ ok: false, message: "Failed to save CGPA.", error: error.message });
+  }
+});
+
+// ─── FACULTY-STUDENT ADVISOR MAPPINGS ────────────────────────
+// GET — list all faculty-student advisor assignments
+app.get("/api/faculty-student-mappings", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT fsm.id, fsm.faculty_id, fsm.student_id,
+             f.faculty_code, f.faculty_name,
+             s.roll_no, s.student_name
+      FROM faculty_student_mapping fsm
+      JOIN faculty  f ON fsm.faculty_id = f.id
+      JOIN students s ON fsm.student_id = s.id
+      ORDER BY s.roll_no
+    `);
+    res.json({ ok: true, mappings: rows });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to load faculty-student mappings.", error: error.message });
+  }
+});
+
+// POST — assign a faculty as advisor for a student
+app.post("/api/faculty-student-mappings", async (req, res) => {
+  const { facultyId, studentId } = req.body;
+  if (!facultyId || !studentId) {
+    return res.status(400).json({ ok: false, message: "Faculty ID and Student ID are required." });
+  }
+  try {
+    const [[faculty]] = await pool.query("SELECT id FROM faculty WHERE id = ?", [facultyId]);
+    if (!faculty) return res.status(404).json({ ok: false, message: "Faculty not found." });
+
+    const [[student]] = await pool.query("SELECT id FROM students WHERE id = ?", [studentId]);
+    if (!student) return res.status(404).json({ ok: false, message: "Student not found." });
+
+    const [result] = await pool.query(
+      `INSERT INTO faculty_student_mapping (faculty_id, student_id)
+       VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE faculty_id = VALUES(faculty_id)`,
+      [facultyId, studentId]
+    );
+    res.json({ ok: true, message: "Advisor assignment saved.", id: result.insertId });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to save advisor assignment.", error: error.message });
+  }
+});
+
+// DELETE — remove a faculty-student advisor assignment by mapping ID
+app.delete("/api/faculty-student-mappings/:id", async (req, res) => {
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM faculty_student_mapping WHERE id = ?",
+      [req.params.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: "Mapping not found." });
+    }
+    res.json({ ok: true, message: "Advisor assignment removed." });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to remove advisor assignment.", error: error.message });
+  }
+});
+
+// ─── STUDENT COURSE ENROLLMENT ───────────────────────────────
+// GET — get enrolled courses for a student
+app.get("/api/student-enrollments/:studentId", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT sce.id, sce.course_id, c.course_code, c.course_name,
+             c.credits, sm.sem_number,
+             COALESCE(GROUP_CONCAT(DISTINCT f.faculty_name ORDER BY f.faculty_name SEPARATOR ', '), 'Not assigned') AS faculty_names
+      FROM student_course_enrollment sce
+      JOIN courses c ON sce.course_id = c.id
+      JOIN semesters sm ON c.sem_id = sm.id
+      LEFT JOIN course_faculty_mapping cfm ON cfm.course_id = c.id
+      LEFT JOIN faculty f ON f.id = cfm.faculty_id
+      WHERE sce.student_id = ?
+      GROUP BY sce.id, sce.course_id, c.course_code, c.course_name, c.credits, sm.sem_number
+      ORDER BY sm.sem_number, c.course_code
+    `, [req.params.studentId]);
+    res.json({ ok: true, enrollments: rows });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to load enrollments.", error: error.message });
+  }
+});
+
+// GET — get all enrollments (for admin overview)
+app.get("/api/student-enrollments", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT sce.id, s.id AS student_id, s.roll_no, s.student_name,
+             c.id AS course_id, c.course_code, c.course_name,
+             sm.id AS sem_id, sm.sem_number,
+             COALESCE(GROUP_CONCAT(DISTINCT f.faculty_name ORDER BY f.faculty_name SEPARATOR ', '), 'Not assigned') AS faculty_names
+      FROM student_course_enrollment sce
+      JOIN students s ON sce.student_id = s.id
+      JOIN courses c ON sce.course_id = c.id
+      JOIN semesters sm ON c.sem_id = sm.id
+      LEFT JOIN course_faculty_mapping cfm ON cfm.course_id = c.id
+      LEFT JOIN faculty f ON f.id = cfm.faculty_id
+      GROUP BY sce.id, s.id, s.roll_no, s.student_name, c.id, c.course_code, c.course_name, sm.id, sm.sem_number
+      ORDER BY s.roll_no, sm.sem_number, c.course_code
+    `);
+    res.json({ ok: true, enrollments: rows });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to load enrollments.", error: error.message });
+  }
+});
+
+// POST — enroll a student in a course
+app.post("/api/student-enrollments", async (req, res) => {
+  const { studentId, courseId } = req.body;
+  if (!studentId || !courseId) {
+    return res.status(400).json({ ok: false, message: "Student ID and Course ID are required." });
+  }
+  try {
+    const [[student]] = await pool.query("SELECT id FROM students WHERE id = ?", [studentId]);
+    if (!student) return res.status(404).json({ ok: false, message: "Student not found." });
+    const [[course]] = await pool.query("SELECT id FROM courses WHERE id = ?", [courseId]);
+    if (!course) return res.status(404).json({ ok: false, message: "Course not found." });
+
+    const [result] = await pool.query(
+      `INSERT IGNORE INTO student_course_enrollment (student_id, course_id) VALUES (?, ?)`,
+      [studentId, courseId]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(409).json({ ok: false, message: "Student is already enrolled in this course." });
+    }
+    res.json({ ok: true, message: "Student enrolled in course.", id: result.insertId });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to enroll student.", error: error.message });
+  }
+});
+
+// DELETE — remove a student enrollment by enrollment ID
+app.delete("/api/student-enrollments/:id", async (req, res) => {
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM student_course_enrollment WHERE id = ?",
+      [req.params.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: "Enrollment not found." });
+    }
+    res.json({ ok: true, message: "Enrollment removed." });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to remove enrollment.", error: error.message });
   }
 });
 

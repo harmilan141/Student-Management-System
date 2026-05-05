@@ -24,19 +24,20 @@ function renderCourseRows(courses) {
 }
 
 async function loadCoursePage() {
-  const [lookupsResult, dashboardResult] = await Promise.all([
+  const [lookupsResult, coursesResult] = await Promise.all([
     courseApp.fetchJson("/api/lookups"),
-    courseApp.fetchJson("/api/dashboard-data")
+    courseApp.fetchJson("/api/courses")   // uses the server route that JOINs departments
   ]);
 
   if (!lookupsResult.ok) {
-    throw new Error(lookupsResult.data.message || "Unable to load semesters.");
+    throw new Error(lookupsResult.data.message || "Unable to load form data.");
   }
 
-  if (!dashboardResult.ok) {
-    throw new Error(dashboardResult.data.message || "Unable to load courses.");
+  if (!coursesResult.ok) {
+    throw new Error(coursesResult.data.message || "Unable to load courses.");
   }
 
+  // Populate Semester dropdown
   courseApp.fillSelect(
     "courseSemester",
     lookupsResult.data.semesters,
@@ -44,7 +45,16 @@ async function loadCoursePage() {
     (item) => `${item.sem_number} - ${item.sem_name}`
   );
 
-  renderCourseRows(dashboardResult.data.courses);
+  // Populate Department dropdown — fetched from SQL via /api/lookups
+  courseApp.fillSelect(
+    "courseDepartment",
+    lookupsResult.data.departments,
+    "dept_id",
+    (item) => `${item.dept_code} - ${item.dept_name}`
+  );
+
+  // Render course list — dept_name is included because server JOINs departments table
+  renderCourseRows(coursesResult.data.courses);
 }
 
 document.getElementById("courseForm").addEventListener("submit", async (event) => {
@@ -54,9 +64,10 @@ document.getElementById("courseForm").addEventListener("submit", async (event) =
     await courseApp.submitJson("/api/courses", "POST", {
       courseCode: document.getElementById("courseCode").value.trim(),
       courseName: document.getElementById("courseName").value.trim(),
-      credits: document.getElementById("courseCredits").value,
-      semId: document.getElementById("courseSemester").value,
-      maxMarks: document.getElementById("courseMaxMarks").value
+      credits:    document.getElementById("courseCredits").value,
+      semId:      document.getElementById("courseSemester").value,
+      deptId:     document.getElementById("courseDepartment").value,   // ← now sent
+      maxMarks:   document.getElementById("courseMaxMarks").value
     });
     event.target.reset();
     document.getElementById("courseMaxMarks").value = "100";
